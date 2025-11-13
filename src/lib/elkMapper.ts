@@ -9,7 +9,7 @@ function buildAreaTree(areas) {
   // returns a map of areaId to area object with children: []
   const idMap = {};
   areas.forEach(area => idMap[area.id] = { ...area, children: [] });
-  // Build heirarchy
+  // Build hierarchy
   Object.values(idMap).forEach(area => {
     if (area.parentId && idMap[area.parentId]) {
       idMap[area.parentId].children.push(area);
@@ -21,20 +21,20 @@ function buildAreaTree(areas) {
 
 function injectNodesIntoAreas(area, nodes, isHorizontal) {
   // Assign only nodes with areaId matching current area
-  const children = [
-    ...area.children.map(child => injectNodesIntoAreas(child, nodes, isHorizontal)),
-    ...nodes.filter(n => n.areaId === area.id).map(n => createElkNode(n, isHorizontal)),
-  ];
-  return {
+  const childAreas = area.children.map(child => injectNodesIntoAreas(child, nodes, isHorizontal));
+  const nodeChildren = nodes.filter(n => n.areaId === area.id).map(n => createElkNode(n, isHorizontal));
+  const allChildren = [...childAreas, ...nodeChildren];
+  const areaObj = {
     id: area.id,
     label: area.label,
     layoutOptions: {
       'elk.padding': '[top=32,left=16,bottom=24,right=16]'
-    },
-    children: children.length ? children : undefined,
-    width: children.length ? undefined : 180,
-    height: children.length ? undefined : 58
+    }
   };
+  if (allChildren.length > 0) {
+    areaObj.children = allChildren;
+  }
+  return areaObj;
 }
 
 export async function layoutGraph(graphData, direction = 'LR') {
