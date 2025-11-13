@@ -1,64 +1,159 @@
 {
-  "layout": { "direction": "LR", "portBinding": "auto", "areaFirst": true, "areaPadding": 24 },
+  "layout": {
+    "direction": "LR",
+    "portBinding": "auto",
+    "areaFirst": true,
+    "areaPadding": 24
+  },
   "areas": [
-    { "id": "roomA", "label": "Room A" },
-    { "id": "rack1", "label": "Rack 1", "parentId": "roomA" }
+    {"id": "roomA", "label": "Main Hall"},
+    {"id": "roomB", "label": "Control Room"},
+    {"id": "rackA", "label": "Rack East", "parentId": "roomA"},
+    {"id": "rackB", "label": "Rack West", "parentId": "roomB"},
+    {"id": "zoneA", "label": "Stage", "parentId": "roomA"}
   ],
   "nodes": [
     {
-      "id": "dev1",
-      "manufacturer": "ACME",
-      "model": "MX-32",
+      "id": "mx1",
+      "manufacturer": "Roland",
+      "model": "V-60HD",
       "category": "Video",
       "subcategory": "Switcher",
       "status": "Existing",
-      "label": "Matrix",
-      "areaId": "rack1",
+      "label": "Main Switch",
+      "areaId": "rackA",
       "ports": {
-        "out1": { "alignment": "Out", "label": "SDI OUT 1", "type": "SDI", "gender": "N/A" },
-        "in1": { "alignment": "In", "label": "SDI IN 1", "type": "SDI", "gender": "N/A" }
+        "hdmi-in1": { "alignment": "In", "label": "HDMI IN 1", "type": "HDMI", "gender": "F"},
+        "hdmi-in2": { "alignment": "In", "label": "HDMI IN 2", "type": "HDMI", "gender": "F"},
+        "sdio": { "alignment": "Out", "label": "SDI OUT", "type": "SDI", "gender": "M"}
+      },
+      "metadata": {"notes": "Entry point for all cameras"}
+    },
+    {
+      "id": "monA",
+      "manufacturer": "Samsung",
+      "model": "U28R55",
+      "category": "Video",
+      "subcategory": "Monitor",
+      "status": "Regular",
+      "label": "Director Monitor",
+      "areaId": "roomB",
+      "ports": {
+        "hdmi": { "alignment": "In", "label": "HDMI", "type": "HDMI", "gender": "F"}
       }
     },
     {
-      "id": "dev2",
-      "manufacturer": "ACME",
-      "model": "DSP-8",
+      "id": "micA",
+      "manufacturer": "Shure",
+      "model": "SM58",
+      "category": "Audio",
+      "subcategory": "Microphone",
+      "status": "Defect",
+      "label": "Vocal Mic",
+      "areaId": "zoneA",
+      "ports": {
+        "xlr": { "alignment": "Out", "label": "XLR OUT", "type": "XLR", "gender": "M"}
+      },
+      "metadata": {"lastTested": "2024-09-11"}
+    },
+    {
+      "id": "ampB",
+      "manufacturer": "Yamaha",
+      "model": "PX5",
       "category": "Audio",
       "subcategory": "Amplifier",
       "status": "Regular",
-      "label": "Amp",
-      "areaId": "roomA",
+      "label": "PA Amp",
+      "areaId": "rackB",
       "ports": {
-        "ain1": { "alignment": "In", "label": "XLR IN 1", "type": "XLR", "gender": "F" },
-        "aout1": { "alignment": "Out", "label": "XLR OUT 1", "type": "XLR", "gender": "M" },
-        "svc": { "alignment": "Bidirectional", "label": "SERVICE", "type": "USB-C", "gender": "N/A" }
+        "inL": { "alignment": "In", "label": "LINE IN L", "type": "XLR", "gender": "F"},
+        "inR": { "alignment": "In", "label": "LINE IN R", "type": "XLR", "gender": "F"},
+        "outL": { "alignment": "Out", "label": "SPK OUT L", "type": "Binding Post", "gender": "N/A"},
+        "outR": { "alignment": "Out", "label": "SPK OUT R", "type": "Binding Post", "gender": "N/A"},
+        "svc": { "alignment": "Bidirectional", "label": "SERVICE PORT", "type": "USB-C", "gender": "N/A"}
       }
+    },
+    {
+      "id": "panel1",
+      "manufacturer": "Logitech",
+      "model": "Touch 10",
+      "category": "Control",
+      "subcategory": "Panel",
+      "status": "Regular",
+      "label": "Touch Panel",
+      "ports": {
+        "net": { "alignment": "Bidirectional", "label": "LAN", "type": "CAT7", "gender": "N/A" }
+      },
+      "metadata": {"ip": "192.168.0.20"}
     }
   ],
   "edges": [
     {
       "id": "e1",
-      "wireId": "W-0001",
+      "wireId": "C-001",
       "category": "Video",
-      "subcategory": "Patch",
-      "cableType": "SDI",
-      "label": "Program",
-      "source": "dev1",
-      "sourcePortKey": "out1",
-      "target": "dev1",
-      "targetPortKey": "in1",
+      "subcategory": "Signal",
+      "cableType": "HDMI",
+      "label": "Camera Feed",
+      "source": "mx1",
+      "sourcePortKey": "sdio",
+      "target": "monA",
+      "targetPortKey": "hdmi",
       "binding": "exact"
     },
     {
       "id": "e2",
-      "wireId": "W-0002",
+      "wireId": "C-002",
+      "category": "Control",
+      "subcategory": "Network",
+      "cableType": "CAT7",
+      "label": "Panel Link",
+      "source": "panel1",
+      "sourcePortKey": "net",
+      "target": "mx1",
+      "targetPortKey": "hdmi-in2",
+      "binding": "auto"
+    },
+    {
+      "id": "e3",
+      "wireId": "C-003",
       "category": "Audio",
-      "subcategory": "Patch",
+      "subcategory": "Mic",
       "cableType": "XLR",
-      "label": "Main feed",
-      "source": "dev1",
-      "target": "dev2",
+      "label": "Vocal to Amp",
+      "source": "micA",
+      "sourcePortKey": "xlr",
+      "target": "ampB",
+      "targetPortKey": "inL",
+      "binding": "exact"
+    },
+    {
+      "id": "e4",
+      "wireId": "C-004",
+      "category": "Audio",
+      "subcategory": "AmpOut",
+      "cableType": "Binding Post",
+      "label": "PA Left",
+      "source": "ampB",
+      "sourcePortKey": "outL",
+      "target": "zoneA",
+      "binding": "auto"
+    },
+    {
+      "id": "e5",
+      "wireId": "C-005",
+      "category": "Audio",
+      "subcategory": "AmpOut",
+      "cableType": "Binding Post",
+      "label": "PA Right",
+      "source": "ampB",
+      "sourcePortKey": "outR",
+      "target": "zoneA",
       "binding": "auto"
     }
-  ]
+  ],
+  "metadata": {
+    "author": "twobeass",
+    "description": "Complex A/V example using all JSON schema features."
+  }
 }
