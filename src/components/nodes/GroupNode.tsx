@@ -18,13 +18,14 @@ export default function GroupNode({ id, data }) {
           position: 'absolute',
           top: 4,
           left: 12,
-          fontSize: 14,
-          fontWeight: 600,
+          fontSize: 19,
+          fontWeight: 700,
           color: '#333',
           opacity: 1,
           background: 'rgba(255, 255, 255, 0.8)',
-          padding: '2px 8px',
-          borderRadius: 4,
+          padding: '3px 12px',
+          borderRadius: 5,
+          letterSpacing: '0.01em',
         }}
       >
         {data.label || id}
