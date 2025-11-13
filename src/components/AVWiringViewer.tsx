@@ -5,22 +5,34 @@ import { validateGraph } from '../lib/validator';
 import DeviceNode from './nodes/DeviceNode';
 import GroupNode from './nodes/GroupNode';
 
+import { edgeCategoryColors } from '../config/colors';
+
 const nodeTypes = {
   deviceNode: DeviceNode,
   groupNode: GroupNode,
 };
 const edgeTypes = {};
 
+// Category-based edge colors
+function getEdgeCategoryColor(category: string) {
+  return edgeCategoryColors[category as keyof typeof edgeCategoryColors] || edgeCategoryColors.Default;
+}
+
 function mapEdgesToReactFlow(elkEdges: any, originalEdges: any) {
   return elkEdges.map((elkEdge: any) => {
     const original = originalEdges.find((e: any) => e.id === elkEdge.id);
+    const edgeColor = getEdgeCategoryColor(original?.category || '');
+    
     return {
       id: elkEdge.id,
       source: elkEdge.sources[0] || original?.source || '',
       target: elkEdge.targets[0] || original?.target || '',
       label: original?.label || '',
       animated: false,
-      style: { stroke: '#344', strokeWidth: 2 },
+      style: { 
+        stroke: edgeColor, 
+        strokeWidth: 2.5,
+      },
       type: 'default',
       // When edges specify port keys, attach to specific handles so edges snap to them
       sourceHandle: original?.sourcePortKey || undefined,

@@ -1,7 +1,8 @@
 import ELK from 'elkjs/lib/elk.bundled.js';
 
-const NODE_WIDTH = 200;
-const NODE_HEIGHT = 88;
+const NODE_WIDTH = 440;
+const NODE_HEIGHT = 100;
+const PORT_HEIGHT_SPACING = 20;
 
 const elk = new ELK();
 
@@ -24,7 +25,7 @@ function injectNodesIntoAreas(area: any, nodes: any, isHorizontal: any, allEdges
     id: area.id,
     label: area.label,
     layoutOptions: {
-      'elk.padding': '[top=40,left=24,bottom=32,right=24]'
+      'elk.padding': '[top=50,left=30,bottom=30,right=30]'
     }
   };
   if (allChildren.length > 0) {
@@ -48,9 +49,11 @@ export async function layoutGraph(graphData: any, direction = 'LR'): Promise<any
     layoutOptions: {
       'elk.algorithm': 'layered',
       'elk.direction': isHorizontal ? 'RIGHT' : 'DOWN',
-      'elk.spacing.nodeNode': '85',
-      'elk.layered.spacing.nodeNodeBetweenLayers': '130',
+      'elk.spacing.nodeNode': '100',
+      'elk.layered.spacing.nodeNodeBetweenLayers': '150',
+      'elk.layered.spacing.edgeNodeBetweenLayers': '50',
       'elk.hierarchyHandling': 'INCLUDE_CHILDREN',
+      'elk.padding': '[top=30,left=30,bottom=30,right=30]',
     },
     children: [
       ...areaRoots,
@@ -169,11 +172,13 @@ function createElkNode(node: any, isHorizontal: any, _allEdges: any) {
     }
   }));
   
+  const portCount = Object.keys(node.ports || {}).length;
+  
   return {
     id: node.id,
     label: node.label,
     width: NODE_WIDTH,
-    height: NODE_HEIGHT + (Object.keys(node.ports || {}).length * 11),
+    height: NODE_HEIGHT + (portCount * PORT_HEIGHT_SPACING),
     targetPosition: isHorizontal ? 'left' : 'top',
     sourcePosition: isHorizontal ? 'right' : 'bottom',
     ports

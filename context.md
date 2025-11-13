@@ -1,8 +1,8 @@
 # AVFlowView Project Context (2025-11-13)
 
-## Status: ✅ COMPLETE - Bidirectional Port Placement Implemented
+## Status: ✅ COMPLETE - Professional Styling System Implemented
 
-JSON-gesteuerter, validierbarer A/V-Verkabelungsschema-Viewer, realisiert mit React Flow, ELK.js (layered auto-layout), Ajv (Validation), Gruppierungs-/Nesting-Logik sowie Styling/UX für professionelle node-basierte Schematic-Views.
+JSON-gesteuerter, validierbarer A/V-Verkabelungsschema-Viewer, realisiert mit React Flow, ELK.js (layered auto-layout), Ajv (Validation), Gruppierungs-/Nesting-Logik sowie professionellem Styling-System für node-basierte Schematic-Views.
 
 ---
 
@@ -13,7 +13,12 @@ JSON-gesteuerter, validierbarer A/V-Verkabelungsschema-Viewer, realisiert mit Re
 - ✅ **Devices/Nodes mit Ports, flexiblen Typen, Status, Kategorie**
 - ✅ **Verschachtelte Areas/Räume mit Parent/Child-Verhältnissen**
 - ✅ **Custom React-Node-Komponenten für Devices und Areas**
-- ✅ **Bidirektionale Port-Platzierung basierend auf Edge-Richtung und Nachbar-Geometrie** (NEW)
+- ✅ **Professionelles Styling-System mit zentraler Farbkonfiguration**
+- ✅ **Side-by-Side Port-Layout (Inputs links, Outputs rechts)**
+- ✅ **Kategorie-basierte Farbgebung für Devices und Edges**
+- ✅ **Doppelte Node-Breite (400-500px) für bessere Lesbarkeit**
+- ✅ **Perfekte Handle-Positionierung auf Node-Kanten**
+- ✅ **Bidirektionale Port-Platzierung basierend auf Edge-Richtung und Nachbar-Geometrie**
 - ✅ **AI Coding Guidance Dokumentation**
 
 ---
