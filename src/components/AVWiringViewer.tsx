@@ -2,8 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { ReactFlow, ReactFlowProvider, useNodesState, useEdgesState, Controls, Background, useReactFlow } from '@xyflow/react';
 import { layoutGraph } from '../lib/elkMapper';
 import { validateGraph } from '../lib/validator';
+import DeviceNode from './nodes/DeviceNode';
 
-const nodeTypes = {};
+const nodeTypes = {
+  deviceNode: DeviceNode
+};
 const edgeTypes = {};
 
 function mapEdgesToReactFlow(elkEdges, originalEdges) {
