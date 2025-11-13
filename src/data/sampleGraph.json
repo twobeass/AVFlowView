@@ -6,131 +6,1682 @@
     "areaPadding": 24
   },
   "areas": [
-    {"id": "roomA", "label": "Main Hall"},
-    {"id": "roomB", "label": "Control Room"},
-    {"id": "rackA", "label": "Rack East", "parentId": "roomA"},
-    {"id": "rackB", "label": "Rack West", "parentId": "roomB"},
-    {"id": "zoneA", "label": "Stage", "parentId": "roomA"}
+    {
+      "id": "control-room",
+      "label": "Control Room",
+      "metadata": {
+        "floor": 1,
+        "size": "large"
+      }
+    },
+    {
+      "id": "studio-a",
+      "label": "Studio A - Main Production",
+      "metadata": {
+        "floor": 1,
+        "size": "xlarge",
+        "acoustics": "treated"
+      }
+    },
+    {
+      "id": "studio-b",
+      "label": "Studio B - Recording",
+      "metadata": {
+        "floor": 2,
+        "size": "medium",
+        "acoustics": "treated"
+      }
+    },
+    {
+      "id": "equipment-room",
+      "label": "Equipment Room / Server Room",
+      "metadata": {
+        "floor": 0,
+        "size": "large",
+        "cooling": "active"
+      }
+    },
+    {
+      "id": "lobby",
+      "label": "Lobby & Display Area",
+      "metadata": {
+        "floor": 1,
+        "size": "medium",
+        "public": true
+      }
+    }
   ],
   "nodes": [
     {
-      "id": "mx1",
-      "manufacturer": "Roland",
-      "model": "V-60HD",
-      "category": "Video",
-      "subcategory": "Switcher",
-      "status": "Existing",
-      "label": "Main Switch",
-      "areaId": "rackA",
-      "ports": {
-        "hdmi-in1": { "alignment": "In", "label": "HDMI IN 1", "type": "HDMI", "gender": "F"},
-        "hdmi-in2": { "alignment": "In", "label": "HDMI IN 2", "type": "HDMI", "gender": "F"},
-        "sdio": { "alignment": "Out", "label": "SDI OUT", "type": "SDI", "gender": "M"}
-      },
-      "metadata": {"notes": "Entry point for all cameras"}
-    },
-    {
-      "id": "monA",
-      "manufacturer": "Samsung",
-      "model": "U28R55",
-      "category": "Video",
-      "subcategory": "Monitor",
-      "status": "Regular",
-      "label": "Director Monitor",
-      "areaId": "roomB",
-      "ports": {
-        "hdmi": { "alignment": "In", "label": "HDMI", "type": "HDMI", "gender": "F"}
-      }
-    },
-    {
-      "id": "micA",
-      "manufacturer": "Shure",
-      "model": "SM58",
-      "category": "Audio",
-      "subcategory": "Microphone",
-      "status": "Defect",
-      "label": "Vocal Mic",
-      "areaId": "zoneA",
-      "ports": {
-        "xlr": { "alignment": "Out", "label": "XLR OUT", "type": "XLR", "gender": "M"}
-      },
-      "metadata": {"lastTested": "2024-09-11"}
-    },
-    {
-      "id": "ampB",
+      "id": "ctrl-mixer-1",
       "manufacturer": "Yamaha",
-      "model": "PX5",
+      "model": "Rivage PM10",
       "category": "Audio",
-      "subcategory": "Amplifier",
+      "subcategory": "Digital Mixer",
       "status": "Regular",
-      "label": "PA Amp",
-      "areaId": "rackB",
+      "label": "Main Audio Console",
+      "areaId": "control-room",
       "ports": {
-        "inL": { "alignment": "In", "label": "LINE IN L", "type": "XLR", "gender": "F"},
-        "inR": { "alignment": "In", "label": "LINE IN R", "type": "XLR", "gender": "F"},
-        "outL": { "alignment": "Out", "label": "SPK OUT L", "type": "Binding Post", "gender": "N/A"},
-        "outR": { "alignment": "Out", "label": "SPK OUT R", "type": "Binding Post", "gender": "N/A"},
-        "svc": { "alignment": "Bidirectional", "label": "SERVICE PORT", "type": "USB-C", "gender": "N/A"}
+        "xlr-in-1": {
+          "alignment": "In",
+          "label": "XLR In 1-8",
+          "type": "XLR",
+          "gender": "F"
+        },
+        "xlr-in-2": {
+          "alignment": "In",
+          "label": "XLR In 9-16",
+          "type": "XLR",
+          "gender": "F"
+        },
+        "xlr-out-1": {
+          "alignment": "Out",
+          "label": "Main Out L/R",
+          "type": "XLR",
+          "gender": "M"
+        },
+        "xlr-out-2": {
+          "alignment": "Out",
+          "label": "Monitor Out 1-4",
+          "type": "XLR",
+          "gender": "M"
+        },
+        "dante-1": {
+          "alignment": "Bidirectional",
+          "label": "Dante Primary",
+          "type": "Ethernet",
+          "gender": "N/A"
+        },
+        "dante-2": {
+          "alignment": "Bidirectional",
+          "label": "Dante Secondary",
+          "type": "Ethernet",
+          "gender": "N/A"
+        }
       }
     },
     {
-      "id": "panel1",
-      "manufacturer": "Logitech",
-      "model": "Touch 10",
-      "category": "Control",
-      "subcategory": "Panel",
+      "id": "ctrl-video-switcher-1",
+      "manufacturer": "Blackmagic Design",
+      "model": "ATEM 2 M/E Constellation HD",
+      "category": "Video",
+      "subcategory": "Video Switcher",
       "status": "Regular",
-      "label": "Touch Panel",
-      "areaId": "roomB",
+      "label": "Main Video Switcher",
+      "areaId": "control-room",
       "ports": {
-        "net": { "alignment": "Bidirectional", "label": "LAN", "type": "CAT7", "gender": "N/A" }
-      },
-      "metadata": {"ip": "192.168.0.20"}
+        "sdi-in-1": {
+          "alignment": "In",
+          "label": "SDI In 1-4",
+          "type": "SDI",
+          "gender": "F"
+        },
+        "sdi-in-2": {
+          "alignment": "In",
+          "label": "SDI In 5-8",
+          "type": "SDI",
+          "gender": "F"
+        },
+        "sdi-out-1": {
+          "alignment": "Out",
+          "label": "PGM Out 1",
+          "type": "SDI",
+          "gender": "M"
+        },
+        "sdi-out-2": {
+          "alignment": "Out",
+          "label": "PGM Out 2",
+          "type": "SDI",
+          "gender": "M"
+        },
+        "hdmi-out-1": {
+          "alignment": "Out",
+          "label": "HDMI Out",
+          "type": "HDMI",
+          "gender": "F"
+        },
+        "ethernet-1": {
+          "alignment": "Bidirectional",
+          "label": "Control Network",
+          "type": "Ethernet",
+          "gender": "N/A"
+        }
+      }
+    },
+    {
+      "id": "ctrl-monitor-1",
+      "manufacturer": "Sony",
+      "model": "BVM-HX310",
+      "category": "Video",
+      "subcategory": "Reference Monitor",
+      "status": "Regular",
+      "label": "Main Reference Monitor",
+      "areaId": "control-room",
+      "ports": {
+        "sdi-in-1": {
+          "alignment": "In",
+          "label": "SDI In 1",
+          "type": "SDI",
+          "gender": "F"
+        },
+        "sdi-in-2": {
+          "alignment": "In",
+          "label": "SDI In 2",
+          "type": "SDI",
+          "gender": "F"
+        },
+        "hdmi-in-1": {
+          "alignment": "In",
+          "label": "HDMI In",
+          "type": "HDMI",
+          "gender": "F"
+        }
+      }
+    },
+    {
+      "id": "ctrl-monitor-2",
+      "manufacturer": "Sony",
+      "model": "BVM-HX310",
+      "category": "Video",
+      "subcategory": "Reference Monitor",
+      "status": "Regular",
+      "label": "Secondary Monitor",
+      "areaId": "control-room",
+      "ports": {
+        "sdi-in-1": {
+          "alignment": "In",
+          "label": "SDI In 1",
+          "type": "SDI",
+          "gender": "F"
+        },
+        "hdmi-in-1": {
+          "alignment": "In",
+          "label": "HDMI In",
+          "type": "HDMI",
+          "gender": "F"
+        }
+      }
+    },
+    {
+      "id": "ctrl-intercom-1",
+      "manufacturer": "Clear-Com",
+      "model": "Eclipse HX-Omega",
+      "category": "Communication",
+      "subcategory": "Intercom System",
+      "status": "Regular",
+      "label": "Main Intercom Matrix",
+      "areaId": "control-room",
+      "ports": {
+        "xlr-io-1": {
+          "alignment": "Bidirectional",
+          "label": "Party Line 1-4",
+          "type": "XLR",
+          "gender": "N/A"
+        },
+        "ethernet-1": {
+          "alignment": "Bidirectional",
+          "label": "Network Port",
+          "type": "Ethernet",
+          "gender": "N/A"
+        },
+        "fiber-1": {
+          "alignment": "Bidirectional",
+          "label": "Fiber Link",
+          "type": "Fiber",
+          "gender": "N/A"
+        }
+      }
+    },
+    {
+      "id": "sta-camera-1",
+      "manufacturer": "Sony",
+      "model": "HDC-5500",
+      "category": "Video",
+      "subcategory": "Studio Camera",
+      "status": "Regular",
+      "label": "Camera 1 - Center",
+      "areaId": "studio-a",
+      "ports": {
+        "sdi-out-1": {
+          "alignment": "Out",
+          "label": "Program Out",
+          "type": "SDI",
+          "gender": "M"
+        },
+        "smpte-fiber": {
+          "alignment": "Bidirectional",
+          "label": "SMPTE Fiber",
+          "type": "Fiber",
+          "gender": "N/A"
+        },
+        "xlr-in-1": {
+          "alignment": "In",
+          "label": "Tally/Intercom",
+          "type": "XLR",
+          "gender": "F"
+        }
+      }
+    },
+    {
+      "id": "sta-camera-2",
+      "manufacturer": "Sony",
+      "model": "HDC-5500",
+      "category": "Video",
+      "subcategory": "Studio Camera",
+      "status": "Regular",
+      "label": "Camera 2 - Left",
+      "areaId": "studio-a",
+      "ports": {
+        "sdi-out-1": {
+          "alignment": "Out",
+          "label": "Program Out",
+          "type": "SDI",
+          "gender": "M"
+        },
+        "smpte-fiber": {
+          "alignment": "Bidirectional",
+          "label": "SMPTE Fiber",
+          "type": "Fiber",
+          "gender": "N/A"
+        }
+      }
+    },
+    {
+      "id": "sta-camera-3",
+      "manufacturer": "Sony",
+      "model": "HDC-5500",
+      "category": "Video",
+      "subcategory": "Studio Camera",
+      "status": "Regular",
+      "label": "Camera 3 - Right",
+      "areaId": "studio-a",
+      "ports": {
+        "sdi-out-1": {
+          "alignment": "Out",
+          "label": "Program Out",
+          "type": "SDI",
+          "gender": "M"
+        },
+        "smpte-fiber": {
+          "alignment": "Bidirectional",
+          "label": "SMPTE Fiber",
+          "type": "Fiber",
+          "gender": "N/A"
+        }
+      }
+    },
+    {
+      "id": "sta-camera-4",
+      "manufacturer": "Sony",
+      "model": "HDC-5500",
+      "category": "Video",
+      "subcategory": "Studio Camera",
+      "status": "Regular",
+      "label": "Camera 4 - Jib",
+      "areaId": "studio-a",
+      "ports": {
+        "sdi-out-1": {
+          "alignment": "Out",
+          "label": "Program Out",
+          "type": "SDI",
+          "gender": "M"
+        },
+        "smpte-fiber": {
+          "alignment": "Bidirectional",
+          "label": "SMPTE Fiber",
+          "type": "Fiber",
+          "gender": "N/A"
+        }
+      }
+    },
+    {
+      "id": "sta-mic-1",
+      "manufacturer": "Sennheiser",
+      "model": "MKH 416",
+      "category": "Audio",
+      "subcategory": "Shotgun Microphone",
+      "status": "Regular",
+      "label": "Boom Mic 1",
+      "areaId": "studio-a",
+      "ports": {
+        "xlr-out-1": {
+          "alignment": "Out",
+          "label": "Audio Out",
+          "type": "XLR",
+          "gender": "M"
+        }
+      }
+    },
+    {
+      "id": "sta-mic-2",
+      "manufacturer": "Shure",
+      "model": "SM7B",
+      "category": "Audio",
+      "subcategory": "Dynamic Microphone",
+      "status": "Regular",
+      "label": "Host Mic",
+      "areaId": "studio-a",
+      "ports": {
+        "xlr-out-1": {
+          "alignment": "Out",
+          "label": "Audio Out",
+          "type": "XLR",
+          "gender": "M"
+        }
+      }
+    },
+    {
+      "id": "sta-wireless-1",
+      "manufacturer": "Sennheiser",
+      "model": "EW-DX EM 4",
+      "category": "Audio",
+      "subcategory": "Wireless Receiver",
+      "status": "Regular",
+      "label": "Wireless Mic System 1",
+      "areaId": "studio-a",
+      "ports": {
+        "xlr-out-1": {
+          "alignment": "Out",
+          "label": "CH1 Out",
+          "type": "XLR",
+          "gender": "M"
+        },
+        "xlr-out-2": {
+          "alignment": "Out",
+          "label": "CH2 Out",
+          "type": "XLR",
+          "gender": "M"
+        },
+        "xlr-out-3": {
+          "alignment": "Out",
+          "label": "CH3 Out",
+          "type": "XLR",
+          "gender": "M"
+        },
+        "xlr-out-4": {
+          "alignment": "Out",
+          "label": "CH4 Out",
+          "type": "XLR",
+          "gender": "M"
+        },
+        "ethernet-1": {
+          "alignment": "Bidirectional",
+          "label": "Control Network",
+          "type": "Ethernet",
+          "gender": "N/A"
+        }
+      }
+    },
+    {
+      "id": "sta-lighting-1",
+      "manufacturer": "ETC",
+      "model": "Eos Ti",
+      "category": "Lighting",
+      "subcategory": "Lighting Console",
+      "status": "Regular",
+      "label": "Lighting Controller",
+      "areaId": "studio-a",
+      "ports": {
+        "dmx-out-1": {
+          "alignment": "Out",
+          "label": "DMX Out 1",
+          "type": "DMX",
+          "gender": "M"
+        },
+        "dmx-out-2": {
+          "alignment": "Out",
+          "label": "DMX Out 2",
+          "type": "DMX",
+          "gender": "M"
+        },
+        "ethernet-1": {
+          "alignment": "Bidirectional",
+          "label": "Network",
+          "type": "Ethernet",
+          "gender": "N/A"
+        }
+      }
+    },
+    {
+      "id": "stb-camera-1",
+      "manufacturer": "Panasonic",
+      "model": "AW-UE150",
+      "category": "Video",
+      "subcategory": "PTZ Camera",
+      "status": "Regular",
+      "label": "PTZ Camera 1",
+      "areaId": "studio-b",
+      "ports": {
+        "sdi-out-1": {
+          "alignment": "Out",
+          "label": "SDI Out",
+          "type": "SDI",
+          "gender": "M"
+        },
+        "hdmi-out-1": {
+          "alignment": "Out",
+          "label": "HDMI Out",
+          "type": "HDMI",
+          "gender": "F"
+        },
+        "ethernet-1": {
+          "alignment": "Bidirectional",
+          "label": "Control/PoE",
+          "type": "Ethernet",
+          "gender": "N/A"
+        }
+      }
+    },
+    {
+      "id": "stb-camera-2",
+      "manufacturer": "Panasonic",
+      "model": "AW-UE150",
+      "category": "Video",
+      "subcategory": "PTZ Camera",
+      "status": "Regular",
+      "label": "PTZ Camera 2",
+      "areaId": "studio-b",
+      "ports": {
+        "sdi-out-1": {
+          "alignment": "Out",
+          "label": "SDI Out",
+          "type": "SDI",
+          "gender": "M"
+        },
+        "hdmi-out-1": {
+          "alignment": "Out",
+          "label": "HDMI Out",
+          "type": "HDMI",
+          "gender": "F"
+        },
+        "ethernet-1": {
+          "alignment": "Bidirectional",
+          "label": "Control/PoE",
+          "type": "Ethernet",
+          "gender": "N/A"
+        }
+      }
+    },
+    {
+      "id": "stb-audio-interface",
+      "manufacturer": "Focusrite",
+      "model": "RedNet A16R",
+      "category": "Audio",
+      "subcategory": "Audio Interface",
+      "status": "Regular",
+      "label": "Dante Audio Interface",
+      "areaId": "studio-b",
+      "ports": {
+        "xlr-in-1": {
+          "alignment": "In",
+          "label": "Analog In 1-8",
+          "type": "XLR",
+          "gender": "F"
+        },
+        "xlr-out-1": {
+          "alignment": "Out",
+          "label": "Analog Out 1-8",
+          "type": "XLR",
+          "gender": "M"
+        },
+        "dante-1": {
+          "alignment": "Bidirectional",
+          "label": "Dante Primary",
+          "type": "Ethernet",
+          "gender": "N/A"
+        },
+        "dante-2": {
+          "alignment": "Bidirectional",
+          "label": "Dante Secondary",
+          "type": "Ethernet",
+          "gender": "N/A"
+        }
+      }
+    },
+    {
+      "id": "stb-mic-1",
+      "manufacturer": "Neumann",
+      "model": "U87 Ai",
+      "category": "Audio",
+      "subcategory": "Condenser Microphone",
+      "status": "Regular",
+      "label": "Studio Mic 1",
+      "areaId": "studio-b",
+      "ports": {
+        "xlr-out-1": {
+          "alignment": "Out",
+          "label": "Audio Out",
+          "type": "XLR",
+          "gender": "M"
+        }
+      }
+    },
+    {
+      "id": "stb-mic-2",
+      "manufacturer": "Neumann",
+      "model": "U87 Ai",
+      "category": "Audio",
+      "subcategory": "Condenser Microphone",
+      "status": "Regular",
+      "label": "Studio Mic 2",
+      "areaId": "studio-b",
+      "ports": {
+        "xlr-out-1": {
+          "alignment": "Out",
+          "label": "Audio Out",
+          "type": "XLR",
+          "gender": "M"
+        }
+      }
+    },
+    {
+      "id": "stb-headphone-amp",
+      "manufacturer": "Behringer",
+      "model": "Powerplay HA8000",
+      "category": "Audio",
+      "subcategory": "Headphone Amplifier",
+      "status": "Regular",
+      "label": "Headphone Distribution",
+      "areaId": "studio-b",
+      "ports": {
+        "xlr-in-1": {
+          "alignment": "In",
+          "label": "Input L/R",
+          "type": "XLR",
+          "gender": "F"
+        },
+        "trs-out-1": {
+          "alignment": "Out",
+          "label": "HP Out 1-8",
+          "type": "TRS",
+          "gender": "F"
+        }
+      }
+    },
+    {
+      "id": "eq-router-1",
+      "manufacturer": "Evertz",
+      "model": "EQX 288x288",
+      "category": "Video",
+      "subcategory": "SDI Router",
+      "status": "Regular",
+      "label": "Main SDI Router",
+      "areaId": "equipment-room",
+      "ports": {
+        "sdi-in-1": {
+          "alignment": "In",
+          "label": "SDI In 1-32",
+          "type": "SDI",
+          "gender": "F"
+        },
+        "sdi-in-2": {
+          "alignment": "In",
+          "label": "SDI In 33-64",
+          "type": "SDI",
+          "gender": "F"
+        },
+        "sdi-out-1": {
+          "alignment": "Out",
+          "label": "SDI Out 1-32",
+          "type": "SDI",
+          "gender": "M"
+        },
+        "sdi-out-2": {
+          "alignment": "Out",
+          "label": "SDI Out 33-64",
+          "type": "SDI",
+          "gender": "M"
+        },
+        "ethernet-1": {
+          "alignment": "Bidirectional",
+          "label": "Control Network",
+          "type": "Ethernet",
+          "gender": "N/A"
+        }
+      }
+    },
+    {
+      "id": "eq-core-switch-1",
+      "manufacturer": "Cisco",
+      "model": "Catalyst 9300",
+      "category": "Network",
+      "subcategory": "Core Switch",
+      "status": "Regular",
+      "label": "Core Network Switch",
+      "areaId": "equipment-room",
+      "ports": {
+        "ethernet-1": {
+          "alignment": "Bidirectional",
+          "label": "Ports 1-24",
+          "type": "Ethernet",
+          "gender": "N/A"
+        },
+        "ethernet-2": {
+          "alignment": "Bidirectional",
+          "label": "Ports 25-48",
+          "type": "Ethernet",
+          "gender": "N/A"
+        },
+        "sfp-1": {
+          "alignment": "Bidirectional",
+          "label": "SFP+ Uplink 1-4",
+          "type": "Fiber",
+          "gender": "N/A"
+        }
+      }
+    },
+    {
+      "id": "eq-dante-switch-1",
+      "manufacturer": "Netgear",
+      "model": "M4300-96X",
+      "category": "Network",
+      "subcategory": "Audio Network Switch",
+      "status": "Regular",
+      "label": "Dante Primary Switch",
+      "areaId": "equipment-room",
+      "ports": {
+        "ethernet-1": {
+          "alignment": "Bidirectional",
+          "label": "Dante Ports 1-48",
+          "type": "Ethernet",
+          "gender": "N/A"
+        },
+        "sfp-1": {
+          "alignment": "Bidirectional",
+          "label": "Redundant Link",
+          "type": "Fiber",
+          "gender": "N/A"
+        }
+      }
+    },
+    {
+      "id": "eq-dante-switch-2",
+      "manufacturer": "Netgear",
+      "model": "M4300-96X",
+      "category": "Network",
+      "subcategory": "Audio Network Switch",
+      "status": "Regular",
+      "label": "Dante Secondary Switch",
+      "areaId": "equipment-room",
+      "ports": {
+        "ethernet-1": {
+          "alignment": "Bidirectional",
+          "label": "Dante Ports 1-48",
+          "type": "Ethernet",
+          "gender": "N/A"
+        },
+        "sfp-1": {
+          "alignment": "Bidirectional",
+          "label": "Redundant Link",
+          "type": "Fiber",
+          "gender": "N/A"
+        }
+      }
+    },
+    {
+      "id": "eq-recorder-1",
+      "manufacturer": "AJA",
+      "model": "Ki Pro Ultra 12G",
+      "category": "Video",
+      "subcategory": "Video Recorder",
+      "status": "Regular",
+      "label": "Main Program Recorder",
+      "areaId": "equipment-room",
+      "ports": {
+        "sdi-in-1": {
+          "alignment": "In",
+          "label": "SDI In 1",
+          "type": "SDI",
+          "gender": "F"
+        },
+        "sdi-in-2": {
+          "alignment": "In",
+          "label": "SDI In 2",
+          "type": "SDI",
+          "gender": "F"
+        },
+        "sdi-out-1": {
+          "alignment": "Out",
+          "label": "SDI Out",
+          "type": "SDI",
+          "gender": "M"
+        },
+        "ethernet-1": {
+          "alignment": "Bidirectional",
+          "label": "Network",
+          "type": "Ethernet",
+          "gender": "N/A"
+        }
+      }
+    },
+    {
+      "id": "eq-storage-1",
+      "manufacturer": "Synology",
+      "model": "RS4021xs+",
+      "category": "IT",
+      "subcategory": "NAS Storage",
+      "status": "Regular",
+      "label": "Media Storage Server",
+      "areaId": "equipment-room",
+      "ports": {
+        "ethernet-1": {
+          "alignment": "Bidirectional",
+          "label": "10GbE Port 1",
+          "type": "Ethernet",
+          "gender": "N/A"
+        },
+        "ethernet-2": {
+          "alignment": "Bidirectional",
+          "label": "10GbE Port 2",
+          "type": "Ethernet",
+          "gender": "N/A"
+        }
+      }
+    },
+    {
+      "id": "eq-multiviewer-1",
+      "manufacturer": "Evertz",
+      "model": "VIP-X20",
+      "category": "Video",
+      "subcategory": "Multiviewer",
+      "status": "Regular",
+      "label": "Main Multiviewer",
+      "areaId": "equipment-room",
+      "ports": {
+        "sdi-in-1": {
+          "alignment": "In",
+          "label": "SDI In 1-16",
+          "type": "SDI",
+          "gender": "F"
+        },
+        "hdmi-out-1": {
+          "alignment": "Out",
+          "label": "HDMI Out 1",
+          "type": "HDMI",
+          "gender": "F"
+        },
+        "hdmi-out-2": {
+          "alignment": "Out",
+          "label": "HDMI Out 2",
+          "type": "HDMI",
+          "gender": "F"
+        },
+        "ethernet-1": {
+          "alignment": "Bidirectional",
+          "label": "Control",
+          "type": "Ethernet",
+          "gender": "N/A"
+        }
+      }
+    },
+    {
+      "id": "eq-ups-1",
+      "manufacturer": "APC",
+      "model": "Smart-UPS SRT 10000VA",
+      "category": "Power",
+      "subcategory": "UPS",
+      "status": "Regular",
+      "label": "Main UPS",
+      "areaId": "equipment-room",
+      "ports": {
+        "network-1": {
+          "alignment": "Bidirectional",
+          "label": "Network Management",
+          "type": "Ethernet",
+          "gender": "N/A"
+        }
+      }
+    },
+    {
+      "id": "lobby-display-1",
+      "manufacturer": "Samsung",
+      "model": "QM85R",
+      "category": "Video",
+      "subcategory": "Digital Signage",
+      "status": "Regular",
+      "label": "Lobby Display Left",
+      "areaId": "lobby",
+      "ports": {
+        "hdmi-in-1": {
+          "alignment": "In",
+          "label": "HDMI In 1",
+          "type": "HDMI",
+          "gender": "F"
+        },
+        "hdmi-in-2": {
+          "alignment": "In",
+          "label": "HDMI In 2",
+          "type": "HDMI",
+          "gender": "F"
+        },
+        "ethernet-1": {
+          "alignment": "Bidirectional",
+          "label": "Network",
+          "type": "Ethernet",
+          "gender": "N/A"
+        }
+      }
+    },
+    {
+      "id": "lobby-display-2",
+      "manufacturer": "Samsung",
+      "model": "QM85R",
+      "category": "Video",
+      "subcategory": "Digital Signage",
+      "status": "Regular",
+      "label": "Lobby Display Right",
+      "areaId": "lobby",
+      "ports": {
+        "hdmi-in-1": {
+          "alignment": "In",
+          "label": "HDMI In 1",
+          "type": "HDMI",
+          "gender": "F"
+        },
+        "hdmi-in-2": {
+          "alignment": "In",
+          "label": "HDMI In 2",
+          "type": "HDMI",
+          "gender": "F"
+        },
+        "ethernet-1": {
+          "alignment": "Bidirectional",
+          "label": "Network",
+          "type": "Ethernet",
+          "gender": "N/A"
+        }
+      }
+    },
+    {
+      "id": "lobby-media-player-1",
+      "manufacturer": "Brightsign",
+      "model": "XT1144",
+      "category": "Video",
+      "subcategory": "Media Player",
+      "status": "Regular",
+      "label": "Signage Player 1",
+      "areaId": "lobby",
+      "ports": {
+        "hdmi-out-1": {
+          "alignment": "Out",
+          "label": "HDMI Out",
+          "type": "HDMI",
+          "gender": "F"
+        },
+        "ethernet-1": {
+          "alignment": "Bidirectional",
+          "label": "Network",
+          "type": "Ethernet",
+          "gender": "N/A"
+        }
+      }
+    },
+    {
+      "id": "lobby-media-player-2",
+      "manufacturer": "Brightsign",
+      "model": "XT1144",
+      "category": "Video",
+      "subcategory": "Media Player",
+      "status": "Regular",
+      "label": "Signage Player 2",
+      "areaId": "lobby",
+      "ports": {
+        "hdmi-out-1": {
+          "alignment": "Out",
+          "label": "HDMI Out",
+          "type": "HDMI",
+          "gender": "F"
+        },
+        "ethernet-1": {
+          "alignment": "Bidirectional",
+          "label": "Network",
+          "type": "Ethernet",
+          "gender": "N/A"
+        }
+      }
+    },
+    {
+      "id": "lobby-audio-dsp",
+      "manufacturer": "QSC",
+      "model": "Core 110f",
+      "category": "Audio",
+      "subcategory": "DSP",
+      "status": "Regular",
+      "label": "Lobby Audio Processor",
+      "areaId": "lobby",
+      "ports": {
+        "xlr-in-1": {
+          "alignment": "In",
+          "label": "Analog In 1-4",
+          "type": "XLR",
+          "gender": "F"
+        },
+        "xlr-out-1": {
+          "alignment": "Out",
+          "label": "Analog Out 1-4",
+          "type": "XLR",
+          "gender": "M"
+        },
+        "dante-1": {
+          "alignment": "Bidirectional",
+          "label": "Dante Network",
+          "type": "Ethernet",
+          "gender": "N/A"
+        },
+        "ethernet-1": {
+          "alignment": "Bidirectional",
+          "label": "Control Network",
+          "type": "Ethernet",
+          "gender": "N/A"
+        }
+      }
+    },
+    {
+      "id": "lobby-speaker-1",
+      "manufacturer": "QSC",
+      "model": "K12.2",
+      "category": "Audio",
+      "subcategory": "Powered Speaker",
+      "status": "Regular",
+      "label": "Lobby Speaker Left",
+      "areaId": "lobby",
+      "ports": {
+        "xlr-in-1": {
+          "alignment": "In",
+          "label": "XLR In",
+          "type": "XLR",
+          "gender": "F"
+        }
+      }
+    },
+    {
+      "id": "lobby-speaker-2",
+      "manufacturer": "QSC",
+      "model": "K12.2",
+      "category": "Audio",
+      "subcategory": "Powered Speaker",
+      "status": "Regular",
+      "label": "Lobby Speaker Right",
+      "areaId": "lobby",
+      "ports": {
+        "xlr-in-1": {
+          "alignment": "In",
+          "label": "XLR In",
+          "type": "XLR",
+          "gender": "F"
+        }
+      }
     }
   ],
   "edges": [
     {
       "id": "e1",
-      "wireId": "C-001",
+      "source": "sta-camera-1",
+      "sourcePortKey": "sdi-out-1",
+      "target": "eq-router-1",
+      "targetPortKey": "sdi-in-1",
+      "cableType": "SDI",
       "category": "Video",
-      "subcategory": "Signal",
-      "cableType": "HDMI",
-      "label": "Camera Feed",
-      "source": "mx1",
-      "sourcePortKey": "sdio",
-      "target": "monA",
-      "targetPortKey": "hdmi",
-      "binding": "exact"
+      "label": "Camera 1 Feed"
     },
     {
       "id": "e2",
-      "wireId": "C-002",
-      "category": "Control",
-      "subcategory": "Network",
-      "cableType": "CAT7",
-      "label": "Panel Link",
-      "source": "panel1",
-      "sourcePortKey": "net",
-      "target": "mx1",
-      "targetPortKey": "hdmi-in2",
-      "binding": "auto"
+      "source": "sta-camera-2",
+      "sourcePortKey": "sdi-out-1",
+      "target": "eq-router-1",
+      "targetPortKey": "sdi-in-1",
+      "cableType": "SDI",
+      "category": "Video",
+      "label": "Camera 2 Feed"
     },
     {
       "id": "e3",
-      "wireId": "C-003",
-      "category": "Audio",
-      "subcategory": "Mic",
+      "source": "sta-camera-3",
+      "sourcePortKey": "sdi-out-1",
+      "target": "eq-router-1",
+      "targetPortKey": "sdi-in-1",
+      "cableType": "SDI",
+      "category": "Video",
+      "label": "Camera 3 Feed"
+    },
+    {
+      "id": "e4",
+      "source": "sta-camera-4",
+      "sourcePortKey": "sdi-out-1",
+      "target": "eq-router-1",
+      "targetPortKey": "sdi-in-1",
+      "cableType": "SDI",
+      "category": "Video",
+      "label": "Camera 4 Feed"
+    },
+    {
+      "id": "e5",
+      "source": "eq-router-1",
+      "sourcePortKey": "sdi-out-1",
+      "target": "ctrl-video-switcher-1",
+      "targetPortKey": "sdi-in-1",
+      "cableType": "SDI",
+      "category": "Video",
+      "label": "Router to Switcher 1-4"
+    },
+    {
+      "id": "e6",
+      "source": "eq-router-1",
+      "sourcePortKey": "sdi-out-1",
+      "target": "ctrl-video-switcher-1",
+      "targetPortKey": "sdi-in-2",
+      "cableType": "SDI",
+      "category": "Video",
+      "label": "Router to Switcher 5-8"
+    },
+    {
+      "id": "e7",
+      "source": "stb-camera-1",
+      "sourcePortKey": "sdi-out-1",
+      "target": "eq-router-1",
+      "targetPortKey": "sdi-in-2",
+      "cableType": "SDI",
+      "category": "Video",
+      "label": "PTZ Camera 1"
+    },
+    {
+      "id": "e8",
+      "source": "stb-camera-2",
+      "sourcePortKey": "sdi-out-1",
+      "target": "eq-router-1",
+      "targetPortKey": "sdi-in-2",
+      "cableType": "SDI",
+      "category": "Video",
+      "label": "PTZ Camera 2"
+    },
+    {
+      "id": "e9",
+      "source": "ctrl-video-switcher-1",
+      "sourcePortKey": "sdi-out-1",
+      "target": "ctrl-monitor-1",
+      "targetPortKey": "sdi-in-1",
+      "cableType": "SDI",
+      "category": "Video",
+      "label": "PGM to Main Monitor"
+    },
+    {
+      "id": "e10",
+      "source": "ctrl-video-switcher-1",
+      "sourcePortKey": "sdi-out-2",
+      "target": "ctrl-monitor-2",
+      "targetPortKey": "sdi-in-1",
+      "cableType": "SDI",
+      "category": "Video",
+      "label": "PGM to Secondary Monitor"
+    },
+    {
+      "id": "e11",
+      "source": "ctrl-video-switcher-1",
+      "sourcePortKey": "sdi-out-1",
+      "target": "eq-recorder-1",
+      "targetPortKey": "sdi-in-1",
+      "cableType": "SDI",
+      "category": "Video",
+      "label": "PGM to Recorder"
+    },
+    {
+      "id": "e12",
+      "source": "eq-router-1",
+      "sourcePortKey": "sdi-out-2",
+      "target": "eq-multiviewer-1",
+      "targetPortKey": "sdi-in-1",
+      "cableType": "SDI",
+      "category": "Video",
+      "label": "Sources to Multiviewer"
+    },
+    {
+      "id": "e13",
+      "source": "sta-mic-1",
+      "sourcePortKey": "xlr-out-1",
+      "target": "ctrl-mixer-1",
+      "targetPortKey": "xlr-in-1",
       "cableType": "XLR",
-      "label": "Vocal to Amp",
-      "source": "micA",
-      "sourcePortKey": "xlr",
-      "target": "ampB",
-      "targetPortKey": "inL",
-      "binding": "exact"
+      "category": "Audio",
+      "label": "Boom Mic"
+    },
+    {
+      "id": "e14",
+      "source": "sta-mic-2",
+      "sourcePortKey": "xlr-out-1",
+      "target": "ctrl-mixer-1",
+      "targetPortKey": "xlr-in-1",
+      "cableType": "XLR",
+      "category": "Audio",
+      "label": "Host Mic"
+    },
+    {
+      "id": "e15",
+      "source": "sta-wireless-1",
+      "sourcePortKey": "xlr-out-1",
+      "target": "ctrl-mixer-1",
+      "targetPortKey": "xlr-in-1",
+      "cableType": "XLR",
+      "category": "Audio",
+      "label": "Wireless CH1"
+    },
+    {
+      "id": "e16",
+      "source": "sta-wireless-1",
+      "sourcePortKey": "xlr-out-2",
+      "target": "ctrl-mixer-1",
+      "targetPortKey": "xlr-in-1",
+      "cableType": "XLR",
+      "category": "Audio",
+      "label": "Wireless CH2"
+    },
+    {
+      "id": "e17",
+      "source": "sta-wireless-1",
+      "sourcePortKey": "xlr-out-3",
+      "target": "ctrl-mixer-1",
+      "targetPortKey": "xlr-in-1",
+      "cableType": "XLR",
+      "category": "Audio",
+      "label": "Wireless CH3"
+    },
+    {
+      "id": "e18",
+      "source": "sta-wireless-1",
+      "sourcePortKey": "xlr-out-4",
+      "target": "ctrl-mixer-1",
+      "targetPortKey": "xlr-in-2",
+      "cableType": "XLR",
+      "category": "Audio",
+      "label": "Wireless CH4"
+    },
+    {
+      "id": "e19",
+      "source": "stb-mic-1",
+      "sourcePortKey": "xlr-out-1",
+      "target": "stb-audio-interface",
+      "targetPortKey": "xlr-in-1",
+      "cableType": "XLR",
+      "category": "Audio",
+      "label": "Studio Mic 1"
+    },
+    {
+      "id": "e20",
+      "source": "stb-mic-2",
+      "sourcePortKey": "xlr-out-1",
+      "target": "stb-audio-interface",
+      "targetPortKey": "xlr-in-1",
+      "cableType": "XLR",
+      "category": "Audio",
+      "label": "Studio Mic 2"
+    },
+    {
+      "id": "e21",
+      "source": "stb-audio-interface",
+      "sourcePortKey": "xlr-out-1",
+      "target": "stb-headphone-amp",
+      "targetPortKey": "xlr-in-1",
+      "cableType": "XLR",
+      "category": "Audio",
+      "label": "Monitor Feed"
+    },
+    {
+      "id": "e22",
+      "source": "ctrl-mixer-1",
+      "sourcePortKey": "dante-1",
+      "target": "eq-dante-switch-1",
+      "targetPortKey": "ethernet-1",
+      "cableType": "CAT7",
+      "category": "Audio Network",
+      "label": "Mixer Dante Primary"
+    },
+    {
+      "id": "e23",
+      "source": "ctrl-mixer-1",
+      "sourcePortKey": "dante-2",
+      "target": "eq-dante-switch-2",
+      "targetPortKey": "ethernet-1",
+      "cableType": "CAT7",
+      "category": "Audio Network",
+      "label": "Mixer Dante Secondary"
+    },
+    {
+      "id": "e24",
+      "source": "stb-audio-interface",
+      "sourcePortKey": "dante-1",
+      "target": "eq-dante-switch-1",
+      "targetPortKey": "ethernet-1",
+      "cableType": "CAT7",
+      "category": "Audio Network",
+      "label": "Studio B Dante Primary"
+    },
+    {
+      "id": "e25",
+      "source": "stb-audio-interface",
+      "sourcePortKey": "dante-2",
+      "target": "eq-dante-switch-2",
+      "targetPortKey": "ethernet-1",
+      "cableType": "CAT7",
+      "category": "Audio Network",
+      "label": "Studio B Dante Secondary"
+    },
+    {
+      "id": "e26",
+      "source": "lobby-audio-dsp",
+      "sourcePortKey": "dante-1",
+      "target": "eq-dante-switch-1",
+      "targetPortKey": "ethernet-1",
+      "cableType": "CAT7",
+      "category": "Audio Network",
+      "label": "Lobby Dante"
+    },
+    {
+      "id": "e27",
+      "source": "eq-dante-switch-1",
+      "sourcePortKey": "sfp-1",
+      "target": "eq-dante-switch-2",
+      "targetPortKey": "sfp-1",
+      "cableType": "Fiber",
+      "category": "Network",
+      "label": "Dante Redundant Link"
+    },
+    {
+      "id": "e28",
+      "source": "lobby-audio-dsp",
+      "sourcePortKey": "xlr-out-1",
+      "target": "lobby-speaker-1",
+      "targetPortKey": "xlr-in-1",
+      "cableType": "XLR",
+      "category": "Audio",
+      "label": "Lobby Left Speaker"
+    },
+    {
+      "id": "e29",
+      "source": "lobby-audio-dsp",
+      "sourcePortKey": "xlr-out-1",
+      "target": "lobby-speaker-2",
+      "targetPortKey": "xlr-in-1",
+      "cableType": "XLR",
+      "category": "Audio",
+      "label": "Lobby Right Speaker"
+    },
+    {
+      "id": "e30",
+      "source": "lobby-media-player-1",
+      "sourcePortKey": "hdmi-out-1",
+      "target": "lobby-display-1",
+      "targetPortKey": "hdmi-in-1",
+      "cableType": "HDMI",
+      "category": "Video",
+      "label": "Player 1 to Display 1"
+    },
+    {
+      "id": "e31",
+      "source": "lobby-media-player-2",
+      "sourcePortKey": "hdmi-out-1",
+      "target": "lobby-display-2",
+      "targetPortKey": "hdmi-in-1",
+      "cableType": "HDMI",
+      "category": "Video",
+      "label": "Player 2 to Display 2"
+    },
+    {
+      "id": "e32",
+      "source": "ctrl-video-switcher-1",
+      "sourcePortKey": "ethernet-1",
+      "target": "eq-core-switch-1",
+      "targetPortKey": "ethernet-1",
+      "cableType": "CAT6",
+      "category": "Control",
+      "label": "Switcher Control"
+    },
+    {
+      "id": "e33",
+      "source": "eq-router-1",
+      "sourcePortKey": "ethernet-1",
+      "target": "eq-core-switch-1",
+      "targetPortKey": "ethernet-1",
+      "cableType": "CAT6",
+      "category": "Control",
+      "label": "Router Control"
+    },
+    {
+      "id": "e34",
+      "source": "eq-recorder-1",
+      "sourcePortKey": "ethernet-1",
+      "target": "eq-core-switch-1",
+      "targetPortKey": "ethernet-1",
+      "cableType": "CAT6",
+      "category": "Control",
+      "label": "Recorder Control"
+    },
+    {
+      "id": "e35",
+      "source": "eq-multiviewer-1",
+      "sourcePortKey": "ethernet-1",
+      "target": "eq-core-switch-1",
+      "targetPortKey": "ethernet-1",
+      "cableType": "CAT6",
+      "category": "Control",
+      "label": "Multiviewer Control"
+    },
+    {
+      "id": "e36",
+      "source": "ctrl-intercom-1",
+      "sourcePortKey": "ethernet-1",
+      "target": "eq-core-switch-1",
+      "targetPortKey": "ethernet-1",
+      "cableType": "CAT6",
+      "category": "Control",
+      "label": "Intercom Control"
+    },
+    {
+      "id": "e37",
+      "source": "stb-camera-1",
+      "sourcePortKey": "ethernet-1",
+      "target": "eq-core-switch-1",
+      "targetPortKey": "ethernet-1",
+      "cableType": "CAT6",
+      "category": "Control",
+      "label": "PTZ 1 Control"
+    },
+    {
+      "id": "e38",
+      "source": "stb-camera-2",
+      "sourcePortKey": "ethernet-1",
+      "target": "eq-core-switch-1",
+      "targetPortKey": "ethernet-1",
+      "cableType": "CAT6",
+      "category": "Control",
+      "label": "PTZ 2 Control"
+    },
+    {
+      "id": "e39",
+      "source": "sta-lighting-1",
+      "sourcePortKey": "ethernet-1",
+      "target": "eq-core-switch-1",
+      "targetPortKey": "ethernet-1",
+      "cableType": "CAT6",
+      "category": "Control",
+      "label": "Lighting Control"
+    },
+    {
+      "id": "e40",
+      "source": "sta-wireless-1",
+      "sourcePortKey": "ethernet-1",
+      "target": "eq-core-switch-1",
+      "targetPortKey": "ethernet-1",
+      "cableType": "CAT6",
+      "category": "Control",
+      "label": "Wireless Mic Control"
+    },
+    {
+      "id": "e41",
+      "source": "lobby-display-1",
+      "sourcePortKey": "ethernet-1",
+      "target": "eq-core-switch-1",
+      "targetPortKey": "ethernet-2",
+      "cableType": "CAT6",
+      "category": "Network",
+      "label": "Display 1 Network"
+    },
+    {
+      "id": "e42",
+      "source": "lobby-display-2",
+      "sourcePortKey": "ethernet-1",
+      "target": "eq-core-switch-1",
+      "targetPortKey": "ethernet-2",
+      "cableType": "CAT6",
+      "category": "Network",
+      "label": "Display 2 Network"
+    },
+    {
+      "id": "e43",
+      "source": "lobby-media-player-1",
+      "sourcePortKey": "ethernet-1",
+      "target": "eq-core-switch-1",
+      "targetPortKey": "ethernet-2",
+      "cableType": "CAT6",
+      "category": "Network",
+      "label": "Player 1 Network"
+    },
+    {
+      "id": "e44",
+      "source": "lobby-media-player-2",
+      "sourcePortKey": "ethernet-1",
+      "target": "eq-core-switch-1",
+      "targetPortKey": "ethernet-2",
+      "cableType": "CAT6",
+      "category": "Network",
+      "label": "Player 2 Network"
+    },
+    {
+      "id": "e45",
+      "source": "lobby-audio-dsp",
+      "sourcePortKey": "ethernet-1",
+      "target": "eq-core-switch-1",
+      "targetPortKey": "ethernet-2",
+      "cableType": "CAT6",
+      "category": "Network",
+      "label": "DSP Control"
+    },
+    {
+      "id": "e46",
+      "source": "eq-storage-1",
+      "sourcePortKey": "ethernet-1",
+      "target": "eq-core-switch-1",
+      "targetPortKey": "ethernet-2",
+      "cableType": "CAT6A",
+      "category": "Network",
+      "label": "Storage Primary"
+    },
+    {
+      "id": "e47",
+      "source": "eq-storage-1",
+      "sourcePortKey": "ethernet-2",
+      "target": "eq-core-switch-1",
+      "targetPortKey": "ethernet-2",
+      "cableType": "CAT6A",
+      "category": "Network",
+      "label": "Storage Secondary"
+    },
+    {
+      "id": "e48",
+      "source": "eq-ups-1",
+      "sourcePortKey": "network-1",
+      "target": "eq-core-switch-1",
+      "targetPortKey": "ethernet-2",
+      "cableType": "CAT6",
+      "category": "Monitoring",
+      "label": "UPS Management"
+    },
+    {
+      "id": "e49",
+      "source": "eq-dante-switch-1",
+      "sourcePortKey": "ethernet-1",
+      "target": "eq-core-switch-1",
+      "targetPortKey": "ethernet-2",
+      "cableType": "CAT7",
+      "category": "Network",
+      "label": "Dante to Core Link 1"
+    },
+    {
+      "id": "e50",
+      "source": "eq-dante-switch-2",
+      "sourcePortKey": "ethernet-1",
+      "target": "eq-core-switch-1",
+      "targetPortKey": "ethernet-2",
+      "cableType": "CAT7",
+      "category": "Network",
+      "label": "Dante to Core Link 2"
+    },
+    {
+      "id": "e51",
+      "source": "eq-router-1",
+      "sourcePortKey": "sdi-out-1",
+      "target": "eq-multiviewer-1",
+      "targetPortKey": "sdi-in-1",
+      "cableType": "SDI",
+      "category": "Video",
+      "label": "Router Feed 1"
+    },
+    {
+      "id": "e52",
+      "source": "eq-router-1",
+      "sourcePortKey": "sdi-out-1",
+      "target": "eq-multiviewer-1",
+      "targetPortKey": "sdi-in-1",
+      "cableType": "SDI",
+      "category": "Video",
+      "label": "Router Feed 2"
+    },
+    {
+      "id": "e53",
+      "source": "eq-recorder-1",
+      "sourcePortKey": "sdi-out-1",
+      "target": "eq-multiviewer-1",
+      "targetPortKey": "sdi-in-1",
+      "cableType": "SDI",
+      "category": "Video",
+      "label": "Recorder Monitor"
+    },
+    {
+      "id": "e54",
+      "source": "eq-multiviewer-1",
+      "sourcePortKey": "hdmi-out-1",
+      "target": "ctrl-monitor-1",
+      "targetPortKey": "hdmi-in-1",
+      "cableType": "HDMI",
+      "category": "Video",
+      "label": "Multiviewer to Main"
+    },
+    {
+      "id": "e55",
+      "source": "eq-multiviewer-1",
+      "sourcePortKey": "hdmi-out-2",
+      "target": "ctrl-monitor-2",
+      "targetPortKey": "hdmi-in-1",
+      "cableType": "HDMI",
+      "category": "Video",
+      "label": "Multiviewer to Secondary"
+    },
+    {
+      "id": "e56",
+      "source": "ctrl-intercom-1",
+      "sourcePortKey": "xlr-io-1",
+      "target": "sta-camera-1",
+      "targetPortKey": "xlr-in-1",
+      "cableType": "XLR",
+      "category": "Communication",
+      "label": "Camera 1 Intercom"
+    },
+    {
+      "id": "e57",
+      "source": "sta-camera-1",
+      "sourcePortKey": "smpte-fiber",
+      "target": "eq-router-1",
+      "targetPortKey": "sdi-in-1",
+      "cableType": "Fiber",
+      "category": "Video",
+      "wireId": "FIBER-CAM1",
+      "label": "Camera 1 Fiber"
+    },
+    {
+      "id": "e58",
+      "source": "sta-camera-2",
+      "sourcePortKey": "smpte-fiber",
+      "target": "eq-router-1",
+      "targetPortKey": "sdi-in-1",
+      "cableType": "Fiber",
+      "category": "Video",
+      "wireId": "FIBER-CAM2",
+      "label": "Camera 2 Fiber"
+    },
+    {
+      "id": "e59",
+      "source": "sta-camera-3",
+      "sourcePortKey": "smpte-fiber",
+      "target": "eq-router-1",
+      "targetPortKey": "sdi-in-1",
+      "cableType": "Fiber",
+      "category": "Video",
+      "wireId": "FIBER-CAM3",
+      "label": "Camera 3 Fiber"
+    },
+    {
+      "id": "e60",
+      "source": "sta-camera-4",
+      "sourcePortKey": "smpte-fiber",
+      "target": "eq-router-1",
+      "targetPortKey": "sdi-in-1",
+      "cableType": "Fiber",
+      "category": "Video",
+      "wireId": "FIBER-CAM4",
+      "label": "Camera 4 Fiber"
+    },
+    {
+      "id": "e61",
+      "source": "ctrl-intercom-1",
+      "sourcePortKey": "fiber-1",
+      "target": "eq-core-switch-1",
+      "targetPortKey": "sfp-1",
+      "cableType": "Fiber",
+      "category": "Communication",
+      "label": "Intercom Fiber Link"
+    },
+    {
+      "id": "e62",
+      "source": "ctrl-video-switcher-1",
+      "sourcePortKey": "hdmi-out-1",
+      "target": "ctrl-monitor-2",
+      "targetPortKey": "hdmi-in-1",
+      "cableType": "HDMI",
+      "category": "Video",
+      "label": "Switcher HDMI Feed"
+    },
+    {
+      "id": "e63",
+      "source": "eq-core-switch-1",
+      "sourcePortKey": "sfp-1",
+      "target": "eq-dante-switch-1",
+      "targetPortKey": "sfp-1",
+      "cableType": "Fiber",
+      "category": "Network",
+      "label": "Core to Dante Uplink 1"
+    },
+    {
+      "id": "e64",
+      "source": "eq-core-switch-1",
+      "sourcePortKey": "sfp-1",
+      "target": "eq-dante-switch-2",
+      "targetPortKey": "sfp-1",
+      "cableType": "Fiber",
+      "category": "Network",
+      "label": "Core to Dante Uplink 2"
+    },
+    {
+      "id": "e65",
+      "source": "ctrl-mixer-1",
+      "sourcePortKey": "xlr-out-2",
+      "target": "stb-audio-interface",
+      "targetPortKey": "xlr-in-1",
+      "cableType": "XLR",
+      "category": "Audio",
+      "label": "Mixer to Studio B"
+    },
+    {
+      "id": "e66",
+      "source": "ctrl-mixer-1",
+      "sourcePortKey": "xlr-out-2",
+      "target": "lobby-audio-dsp",
+      "targetPortKey": "xlr-in-1",
+      "cableType": "XLR",
+      "category": "Audio",
+      "label": "Mixer to Lobby"
     }
   ],
   "metadata": {
-    "author": "twobeass",
-    "description": "Complex A/V example using all JSON schema features. Edges always target nodes, never areas."
+    "installation": "Professional Broadcasting Facility",
+    "created": "2025-11-13",
+    "version": "1.0"
   }
 }

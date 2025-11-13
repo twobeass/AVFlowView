@@ -4,8 +4,10 @@ import { layoutGraph } from '../lib/elkMapper';
 import { validateGraph } from '../lib/validator';
 import DeviceNode from './nodes/DeviceNode';
 import GroupNode from './nodes/GroupNode';
+import FocusModePanel from './FocusModePanel';
 
 import { edgeCategoryColors } from '../config/colors';
+import { calculateNeighborhood, filterGraphByNeighborhood, isDeviceNode, getNodeLabel } from '../lib/focusMode';
 
 const nodeTypes = {
   deviceNode: DeviceNode,
@@ -104,6 +106,21 @@ function AVWiringViewer({ graphData }: { graphData: any }) {
   const { fitView } = useReactFlow();
   const [direction] = useState('LR');
   const [validationErrors, setValidationErrors] = useState<any[]>([]);
+  
+  // Focus mode state
+  const [focusMode, setFocusMode] = useState({
+    enabled: false,
+    focusedNodeId: null as string | null,
+    depthOutgoing: 2,
+    depthIncoming: 2,
+    followOutgoing: true,
+    followIncoming: true,
+  });
+  
+  // Store full graph data for filtering
+  const [fullGraphData, setFullGraphData] = useState<any>(null);
+  const [fullNodes, setFullNodes] = useState<any[]>([]);
+  const [fullEdges, setFullEdges] = useState<any[]>([]);
 
   useEffect(() => {
     const validation = validateGraph(graphData);
@@ -118,35 +135,265 @@ function AVWiringViewer({ graphData }: { graphData: any }) {
       (layouted.children || []).forEach((root: any) => {
         rfNodes.push(...flattenElkGroups(root, graphData, null, portSidesMap));
       });
+      
+      const rfEdges = mapEdgesToReactFlow(layouted.edges || [], graphData.edges || []);
+      
+      // Store full graph data
+      setFullGraphData(graphData);
+      setFullNodes(rfNodes);
+      setFullEdges(rfEdges);
+      
+      // Exit focus mode when graph changes
+      setFocusMode({
+        enabled: false,
+        focusedNodeId: null,
+        depthOutgoing: 2,
+        depthIncoming: 2,
+        followOutgoing: true,
+        followIncoming: true,
+      });
+      
       setNodes(rfNodes);
-      setEdges(mapEdgesToReactFlow(layouted.edges || [], graphData.edges || []));
+      setEdges(rfEdges);
       setTimeout(() => fitView({ duration: 800, padding: 0.11 }), 200);
     });
   }, [graphData, direction]);
 
+  // Handle node click for focus mode
+  const handleNodeClick = async (event: any, node: any) => {
+    // Only allow focusing on device nodes
+    if (node.type !== 'deviceNode') {
+      return;
+    }
+
+    // Toggle focus: if clicking the same node, exit focus mode
+    if (focusMode.enabled && focusMode.focusedNodeId === node.id) {
+      setFocusMode({
+        enabled: false,
+        focusedNodeId: null,
+        depthOutgoing: 2,
+        depthIncoming: 2,
+        followOutgoing: true,
+        followIncoming: true,
+      });
+      setNodes(fullNodes as any);
+      setEdges(fullEdges as any);
+      setTimeout(() => fitView({ duration: 800, padding: 0.11 }), 200);
+      return;
+    }
+
+    // Activate focus mode
+    if (!fullGraphData) return;
+
+    const neighborhood = calculateNeighborhood(
+      node.id,
+      focusMode.depthOutgoing,
+      focusMode.depthIncoming,
+      fullGraphData.edges || [],
+      focusMode.followOutgoing,
+      focusMode.followIncoming
+    );
+
+    const filtered = filterGraphByNeighborhood(
+      fullNodes,
+      fullEdges,
+      neighborhood
+    );
+
+    // Re-layout with filtered graph
+    const filteredGraphData = {
+      ...fullGraphData,
+      nodes: fullGraphData.nodes.filter((n: any) =>
+        filtered.nodes.some((fn: any) => fn.id === n.id)
+      ),
+      areas: fullGraphData.areas.filter((a: any) =>
+        filtered.parentAreas.has(a.id)
+      ),
+      edges: fullGraphData.edges.filter((e: any) =>
+        filtered.edges.some((fe: any) => fe.id === e.id)
+      ),
+    };
+
+    try {
+      const layouted = await layoutGraph(filteredGraphData, direction);
+      const portSidesMap = (layouted as any).__portSides || {};
+      let rfNodes: any[] = [];
+      (layouted.children || []).forEach((root: any) => {
+        rfNodes.push(...flattenElkGroups(root, filteredGraphData, null, portSidesMap));
+      });
+
+      // Highlight focused node
+      rfNodes = rfNodes.map((n: any) => ({
+        ...n,
+        selected: n.id === node.id,
+        style: {
+          ...n.style,
+          ...(n.id === node.id && {
+            boxShadow: '0 0 0 3px #1976d2, 0 2px 8px rgba(0,0,0,0.2)',
+            borderWidth: 3,
+          }),
+        },
+      }));
+
+      const rfEdges = mapEdgesToReactFlow(layouted.edges || [], filteredGraphData.edges || []);
+
+      setNodes(rfNodes);
+      setEdges(rfEdges);
+      
+      setFocusMode({
+        enabled: true,
+        focusedNodeId: node.id,
+        depthOutgoing: focusMode.depthOutgoing,
+        depthIncoming: focusMode.depthIncoming,
+        followOutgoing: focusMode.followOutgoing,
+        followIncoming: focusMode.followIncoming,
+      });
+
+      setTimeout(() => fitView({ duration: 800, padding: 0.11 }), 200);
+    } catch (error) {
+      console.error('Error applying focus mode:', error);
+    }
+  };
+
+  // Update focus mode when depth or direction changes
+  const updateFocusMode = async (updates: Partial<typeof focusMode>) => {
+    if (!focusMode.enabled || !focusMode.focusedNodeId || !fullGraphData) return;
+
+    const newFocusMode = { ...focusMode, ...updates };
+    
+    const neighborhood = calculateNeighborhood(
+      focusMode.focusedNodeId,
+      newFocusMode.depthOutgoing,
+      newFocusMode.depthIncoming,
+      fullGraphData.edges || [],
+      newFocusMode.followOutgoing,
+      newFocusMode.followIncoming
+    );
+
+    const filtered = filterGraphByNeighborhood(
+      fullNodes,
+      fullEdges,
+      neighborhood
+    );
+
+    const filteredGraphData = {
+      ...fullGraphData,
+      nodes: fullGraphData.nodes.filter((n: any) =>
+        filtered.nodes.some((fn: any) => fn.id === n.id)
+      ),
+      areas: fullGraphData.areas.filter((a: any) =>
+        filtered.parentAreas.has(a.id)
+      ),
+      edges: fullGraphData.edges.filter((e: any) =>
+        filtered.edges.some((fe: any) => fe.id === e.id)
+      ),
+    };
+
+    try {
+      const layouted = await layoutGraph(filteredGraphData, direction);
+      const portSidesMap = (layouted as any).__portSides || {};
+      let rfNodes: any[] = [];
+      (layouted.children || []).forEach((root: any) => {
+        rfNodes.push(...flattenElkGroups(root, filteredGraphData, null, portSidesMap));
+      });
+
+      rfNodes = rfNodes.map((n: any) => ({
+        ...n,
+        selected: n.id === focusMode.focusedNodeId,
+        style: {
+          ...n.style,
+          ...(n.id === focusMode.focusedNodeId && {
+            boxShadow: '0 0 0 3px #1976d2, 0 2px 8px rgba(0,0,0,0.2)',
+            borderWidth: 3,
+          }),
+        },
+      }));
+
+      const rfEdges = mapEdgesToReactFlow(layouted.edges || [], filteredGraphData.edges || []);
+
+      setNodes(rfNodes);
+      setEdges(rfEdges);
+      setFocusMode(newFocusMode);
+
+      setTimeout(() => fitView({ duration: 800, padding: 0.11 }), 200);
+    } catch (error) {
+      console.error('Error updating focus mode:', error);
+    }
+  };
+
+  const focusedNodeLabel = focusMode.focusedNodeId
+    ? fullNodes.find((n) => n.id === focusMode.focusedNodeId)?.data?.label ||
+      focusMode.focusedNodeId
+    : null;
+
+  const visibleDeviceNodeCount = nodes.filter(
+    (n) => n.type === 'deviceNode'
+  ).length;
+  const totalDeviceNodeCount = fullNodes.filter(
+    (n) => n.type === 'deviceNode'
+  ).length;
+
   return (
-    <div style={{ width: '100%', height: '100vh' }}>
-      {validationErrors.length > 0 && (
-        <div style={{ padding: 8, backgroundColor: '#ffcdd2', color: '#b71c1c' }}>
-          <h3>Validation Errors</h3>
-          <ul>{validationErrors.map((err, i) => <li key={i}>{err.path} - {err.message}</li>)}</ul>
-        </div>
-      )}
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        nodeTypes={nodeTypes}
-        edgeTypes={edgeTypes}
-        fitView
-        minZoom={0.1}
-        maxZoom={2.5}
-        panOnDrag={true}
-      >
-        <Controls />
-        <Background />
-      </ReactFlow>
+    <div style={{ width: '100%', height: '100vh', display: 'flex' }}>
+      {/* Focus Mode Sidebar */}
+      <FocusModePanel
+        enabled={focusMode.enabled}
+        focusedNodeId={focusMode.focusedNodeId}
+        focusedNodeLabel={focusedNodeLabel}
+        depthOutgoing={focusMode.depthOutgoing}
+        depthIncoming={focusMode.depthIncoming}
+        followOutgoing={focusMode.followOutgoing}
+        followIncoming={focusMode.followIncoming}
+        visibleNodeCount={visibleDeviceNodeCount}
+        totalNodeCount={totalDeviceNodeCount}
+        onDepthOutgoingChange={(depthOutgoing) => updateFocusMode({ depthOutgoing })}
+        onDepthIncomingChange={(depthIncoming) => updateFocusMode({ depthIncoming })}
+        onFollowOutgoingChange={(followOutgoing) =>
+          updateFocusMode({ followOutgoing })
+        }
+        onFollowIncomingChange={(followIncoming) =>
+          updateFocusMode({ followIncoming })
+        }
+        onExitFocus={() => {
+          setFocusMode({
+            enabled: false,
+            focusedNodeId: null,
+            depthOutgoing: 2,
+            depthIncoming: 2,
+            followOutgoing: true,
+            followIncoming: true,
+          });
+          setNodes(fullNodes as any);
+          setEdges(fullEdges as any);
+          setTimeout(() => fitView({ duration: 800, padding: 0.11 }), 200);
+        }}
+      />
+
+      {/* Main Canvas Area */}
+      <div style={{ flex: 1, height: '100vh', overflow: 'hidden' }}>
+        {validationErrors.length > 0 && (
+          <div style={{ padding: 8, backgroundColor: '#ffcdd2', color: '#b71c1c' }}>
+            <h3>Validation Errors</h3>
+            <ul>{validationErrors.map((err, i) => <li key={i}>{err.path} - {err.message}</li>)}</ul>
+          </div>
+        )}
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onNodeClick={handleNodeClick}
+          nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+          fitView
+          minZoom={0.1}
+          maxZoom={2.5}
+          panOnDrag={true}
+        >
+          <Controls />
+          <Background />
+        </ReactFlow>
+      </div>
     </div>
   );
 }

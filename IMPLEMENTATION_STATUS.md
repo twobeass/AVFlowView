@@ -1,7 +1,76 @@
 # AVFlowView Implementation Status
 
 **Last Updated**: November 13, 2025  
-**Status**: ✅ COMPLETE - Professional Styling System Implemented
+**Status**: ✅ COMPLETE - Enhanced Layout & Bidirectional Port Rendering
+
+## Completed Tasks
+
+### 1. Enhanced ELK Layout & Bidirectional Port Rendering ✅
+- **Status**: Complete layout optimization and bidirectional port fix
+- **Date**: November 13, 2025
+- **Branch**: `feature/improve-layout-and-fix-bidirectional-ports`
+
+#### Key Improvements:
+
+1. **Enhanced ELK Layout Configuration**
+   - **Crossing Minimization**: Implemented LAYER_SWEEP strategy with thoroughness of 15
+   - **Node Placement**: Added NETWORK_SIMPLEX strategy for optimal alignment
+   - **Edge Routing**: Switched to ORTHOGONAL routing to prevent edges crossing nodes
+   - **Port Ordering**: Added FIXED_ORDER constraints with explicit indices
+   - **Additional Options**: 
+     - Two-sided greedy switch for crossing minimization
+     - Semi-interactive mode enabled
+     - Port model order consideration
+     - Balanced fixed alignment for node placement
+
+2. **Smoothstep Edge Styling**
+   - Changed from `bezier` to `smoothstep` edge type
+   - Creates cleaner orthogonal connections
+   - Better suited for technical/AV wiring diagrams
+
+3. **Intelligent Node Ordering**
+   - Implemented priority-based node sorting within areas
+   - Priority calculation based on target/source port indices
+   - Nodes connecting to earlier ports get lower priority (placed higher)
+   - Sorting applied before ELK node creation for consistent ordering
+
+4. **Fixed Bidirectional Port Rendering (Critical Bug Fix)**
+   - **Problem**: Bidirectional ports only had source handles → incoming connections couldn't render
+   - **Solution**: 
+     - Added BOTH source AND target handles at same position for each bidirectional port
+     - Integrated bidirectional ports into main two-column layout grid
+     - Used ELK-computed side to determine left vs right column placement
+     - All bidirectional connections now render correctly
+
+#### Implementation Details:
+
+**File: `src/lib/elkMapper.ts`**
+- Enhanced `layoutGraph()` with advanced ELK options
+- Added `computeNodePriorities()` function to calculate node priorities
+- Modified `injectNodesIntoAreas()` to sort nodes by priority before creating ELK nodes
+- Added node index parameter to `createElkNode()` for position constraints
+- Added explicit priority and constraint options to node layout options
+
+**File: `src/components/AVWiringViewer.tsx`**
+- Changed edge type from `'default'` to `'smoothstep'` in `mapEdgesToReactFlow()`
+
+**File: `src/components/nodes/DeviceNode.tsx`**
+- Refactored port rendering to use position-based grouping (left vs right)
+- Bidirectional ports now integrated into left/right columns based on `computedSide`
+- Each bidirectional port renders both target AND source handles
+- Maintains proper vertical alignment with input/output ports
+
+#### Testing Results:
+- ✅ All bidirectional connections now visible (Dante, Ethernet, Fiber, etc.)
+- ✅ Smoothstep edges provide cleaner visual appearance
+- ✅ Edge crossings reduced (though not eliminated due to ELK heuristics)
+- ✅ Bidirectional ports properly aligned with other ports
+- ✅ No visual regressions in input/output port handling
+
+#### Known Limitations:
+- ELK's sophisticated heuristics may override explicit ordering hints for overall optimization
+- Perfect node ordering in all cases may not be achievable with current algorithm
+- Some edge crossings remain due to complex graph topology
 
 ## Completed Tasks
 
