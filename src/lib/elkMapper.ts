@@ -1,15 +1,53 @@
 import ELK from 'elkjs/lib/elk.bundled.js';
 
 const NODE_WIDTH = 160;
-const NODE_HEIGHT = 60;
-const AREA_WIDTH = 220;
-const AREA_HEIGHT = 60;
+const NODE_HEIGHT = 68;
 
 const elk = new ELK();
 
+function buildAreaTree(areas) {
+  // returns a map of areaId to area object with children: []
+  const idMap = {};
+  areas.forEach(area => idMap[area.id] = { ...area, children: [] });
+  // Build heirarchy
+  Object.values(idMap).forEach(area => {
+    if (area.parentId && idMap[area.parentId]) {
+      idMap[area.parentId].children.push(area);
+    }
+  });
+  // Return only root areas
+  return Object.values(idMap).filter(a => !a.parentId);
+}
+
+function injectNodesIntoAreas(area, nodes, isHorizontal) {
+  // Assign only nodes with areaId matching current area
+  const children = [
+    ...area.children.map(child => injectNodesIntoAreas(child, nodes, isHorizontal)),
+    ...nodes.filter(n => n.areaId === area.id).map(n => createElkNode(n, isHorizontal)),
+  ];
+  return {
+    id: area.id,
+    label: area.label,
+    layoutOptions: {
+      'elk.padding': '[top=32,left=16,bottom=24,right=16]'
+    },
+    children: children.length ? children : undefined,
+    width: children.length ? undefined : 180,
+    height: children.length ? undefined : 58
+  };
+}
+
 export async function layoutGraph(graphData, direction = 'LR') {
   const isHorizontal = direction === 'LR';
-  
+  const areas = Array.isArray(graphData.areas) ? graphData.areas : [];
+  const nodes = Array.isArray(graphData.nodes) ? graphData.nodes : [];
+  // Build nested area tree structure (compound graph)
+  const areaRoots = buildAreaTree(areas).map(rootArea => injectNodesIntoAreas(rootArea, nodes, isHorizontal));
+  // Nodes without area
+  const standaloneNodes = nodes
+    .filter(n => !n.areaId)
+    .map(n => createElkNode(n, isHorizontal));
+
   const elkGraph = {
     id: 'root',
     layoutOptions: {
@@ -19,42 +57,23 @@ export async function layoutGraph(graphData, direction = 'LR') {
       'elk.layered.spacing.nodeNodeBetweenLayers': '60',
       'elk.hierarchyHandling': 'INCLUDE_CHILDREN'
     },
-    children: mapNodesToElk(graphData.nodes, graphData.areas, isHorizontal),
+    children: [
+      ...areaRoots,
+      ...standaloneNodes
+    ],
     edges: mapEdgesToElk(graphData.edges)
   };
-  
   return await elk.layout(elkGraph);
-}
-
-function mapNodesToElk(nodes, areas, isHorizontal) {
-  // Ensure areas are visible and assigned dimensions
-  const areaNodes = areas.map(area => ({
-    id: area.id,
-    width: AREA_WIDTH,
-    height: AREA_HEIGHT,
-    label: area.label,
-    layoutOptions: { 
-      'elk.padding': '[top=24,left=16,bottom=16,right=16]'
-    },
-    children: nodes
-      .filter(n => n.areaId === area.id)
-      .map(n => createElkNode(n, isHorizontal))
-  }));
-  const standaloneNodes = nodes
-    .filter(n => !n.areaId)
-    .map(n => createElkNode(n, isHorizontal));
-    
-  return [...areaNodes, ...standaloneNodes];
 }
 
 function createElkNode(node, isHorizontal) {
   return {
     id: node.id,
+    label: node.label,
     width: NODE_WIDTH,
     height: NODE_HEIGHT,
     targetPosition: isHorizontal ? 'left' : 'top',
     sourcePosition: isHorizontal ? 'right' : 'bottom',
-    label: node.label,
     ports: Object.entries(node.ports).map(([key, port]) => ({
       id: `${node.id}.${key}`,
       properties: {
@@ -72,9 +91,9 @@ function getPortSide(alignment, isHorizontal) {
 }
 
 function mapEdgesToElk(edges) {
-  return edges.map(e => ({
+  return Array.isArray(edges) ? edges.map(e => ({
     id: e.id,
     sources: [e.source],
     targets: [e.target]
-  }));
+  })) : [];
 }
