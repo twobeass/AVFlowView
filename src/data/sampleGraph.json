@@ -81,6 +81,7 @@
       "subcategory": "Panel",
       "status": "Regular",
       "label": "Touch Panel",
+      "areaId": "roomB",
       "ports": {
         "net": { "alignment": "Bidirectional", "label": "LAN", "type": "CAT7", "gender": "N/A" }
       },
@@ -126,34 +127,10 @@
       "target": "ampB",
       "targetPortKey": "inL",
       "binding": "exact"
-    },
-    {
-      "id": "e4",
-      "wireId": "C-004",
-      "category": "Audio",
-      "subcategory": "AmpOut",
-      "cableType": "Binding Post",
-      "label": "PA Left",
-      "source": "ampB",
-      "sourcePortKey": "outL",
-      "target": "zoneA",
-      "binding": "auto"
-    },
-    {
-      "id": "e5",
-      "wireId": "C-005",
-      "category": "Audio",
-      "subcategory": "AmpOut",
-      "cableType": "Binding Post",
-      "label": "PA Right",
-      "source": "ampB",
-      "sourcePortKey": "outR",
-      "target": "zoneA",
-      "binding": "auto"
     }
   ],
   "metadata": {
     "author": "twobeass",
-    "description": "Complex A/V example using all JSON schema features."
+    "description": "Complex A/V example using all JSON schema features. Edges always target nodes, never areas."
   }
 }
