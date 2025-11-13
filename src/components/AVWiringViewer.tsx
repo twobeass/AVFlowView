@@ -5,7 +5,7 @@ import { validateGraph } from '../lib/validator';
 import DeviceNode from './nodes/DeviceNode';
 
 const nodeTypes = {
-  deviceNode: DeviceNode
+  deviceNode: DeviceNode,
 };
 const edgeTypes = {};
 
@@ -24,43 +24,45 @@ function mapEdgesToReactFlow(elkEdges, originalEdges) {
   });
 }
 
-function flattenElk(layouted, graphData) {
-  // Recursively flatten ELK-compound structure to React Flow nodes, assign positions and types.
+function flattenElkGroups(elkNode, graphData, parent=null) {
+  // Recursively flatten ELK to React Flow nodes, group devices by parentId
   const nodes = [];
-  function traverse(elkNode, parentIsArea) {
-    // if this node matches an area in the input, render it as area (default), otherwise as deviceNode
-    if(graphData.areas.some(a => a.id === elkNode.id)) {
-      nodes.push({
-        id: elkNode.id,
-        position: { x: elkNode.x, y: elkNode.y },
-        data: { label: elkNode.label },
-        type: 'default',
-        selectable: false,
-        style: {
-          background: '#eef4fb',
-          border: '2px dashed #bbb',
-          borderRadius: 10,
-          minHeight: 60,
-          minWidth: 140,
-          opacity: 0.45,
-          zIndex: 0
-        }
-      });
-    } else if(graphData.nodes.some(n => n.id === elkNode.id)) {
-      const d = graphData.nodes.find(n => n.id === elkNode.id);
-      nodes.push({
-        id: elkNode.id,
-        position: { x: elkNode.x, y: elkNode.y },
-        data: d,
-        type: 'deviceNode',
-        zIndex: 2
-      });
-    }
-    if (elkNode.children) {
-      elkNode.children.forEach(child => traverse(child, true));
-    }
+  const isArea = graphData.areas.some(a => a.id === elkNode.id);
+  if(isArea) {
+    nodes.push({
+      id: elkNode.id,
+      type: 'group',
+      parentId: elkNode.parent || undefined,
+      position: { x: elkNode.x, y: elkNode.y },
+      style: {
+        background: '#eef4fb',
+        border: '2px dashed #bbb',
+        borderRadius: 14,
+        opacity: 0.42,
+        minWidth: 140,
+        minHeight: 70
+      },
+      data: { label: elkNode.label || elkNode.id },
+      selectable: false
+    });
+  } else if(graphData.nodes.some(n => n.id === elkNode.id)) {
+    // normal device
+    const d = graphData.nodes.find(n => n.id === elkNode.id);
+    nodes.push({
+      id: elkNode.id,
+      type: 'deviceNode',
+      parentId: elkNode.parent || undefined,
+      position: { x: elkNode.x, y: elkNode.y },
+      data: d,
+      zIndex: 2,
+    });
   }
-  layouted.children.forEach(node => traverse(node, false));
+  if (elkNode.children) {
+    elkNode.children.forEach(child => {
+      child.parent = elkNode.id;
+      nodes.push(...flattenElkGroups(child, graphData, elkNode.id));
+    });
+  }
   return nodes;
 }
 
@@ -79,10 +81,13 @@ function AVWiringViewer({ graphData }) {
     }
 
     layoutGraph(graphData, direction).then(layouted => {
-      const rfNodes = flattenElk(layouted, graphData);
+      let rfNodes = [];
+      layouted.children.forEach(root => {
+        rfNodes.push(...flattenElkGroups(root, graphData, null));
+      });
       setNodes(rfNodes);
       setEdges(mapEdgesToReactFlow(layouted.edges, graphData.edges));
-      setTimeout(() => fitView({ duration: 800, padding: 0.11 }), 240);
+      setTimeout(() => fitView({ duration: 800, padding: 0.11 }), 200);
     });
   }, [graphData, direction]);
 
@@ -103,7 +108,7 @@ function AVWiringViewer({ graphData }) {
         edgeTypes={edgeTypes}
         fitView
         minZoom={0.1}
-        maxZoom={2.7}
+        maxZoom={2.5}
         panOnDrag={true}
       >
         <Controls />
