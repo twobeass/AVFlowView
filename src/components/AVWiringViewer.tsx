@@ -23,6 +23,26 @@ function mapEdgesToReactFlow(elkEdges, originalEdges) {
   });
 }
 
+function areaNodeRenderer(node) {
+  // Render area as a labeled box
+  return {
+    ...node,
+    data: { label: node.data?.label || node.id },
+    style: {
+      background: '#eef4fb',
+      border: '2px dashed #aaa',
+      borderRadius: 10,
+      minHeight: 60,
+      minWidth: 200,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      opacity: 0.55,
+      zIndex: 0
+    }
+  };
+}
+
 function AVWiringViewer({ graphData }) {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -38,26 +58,34 @@ function AVWiringViewer({ graphData }) {
     }
 
     layoutGraph(graphData, direction).then(layouted => {
+      // area children to nodes, areas themselves as area nodes
       const rfNodes = layouted.children.flatMap(area => {
         if (area.children) {
-          return area.children.map(n => ({
+          // area as box
+          const areaBox = areaNodeRenderer({
+            id: area.id,
+            position: { x: area.x, y: area.y },
+            data: { label: area.label },
+            type: 'default',
+            selectable: false,
+            zIndex: 0
+          });
+          // children
+          const areaChildren = area.children.map(n => ({
             id: n.id,
             position: { x: n.x, y: n.y },
             data: graphData.nodes.find(gn => gn.id === n.id),
-            type: 'deviceNode'
+            type: 'deviceNode',
+            zIndex: 2
           }));
+          return [areaBox, ...areaChildren];
         }
-        return [{
-          id: area.id,
-          position: { x: area.x, y: area.y },
-          data: null,
-          type: 'areaNode'
-        }];
+        // areas ohne children ausblenden
+        return [];
       });
-
       setNodes(rfNodes);
       setEdges(mapEdgesToReactFlow(layouted.edges, graphData.edges));
-      setTimeout(() => fitView(), 50);
+      setTimeout(() => fitView({ duration: 800, padding: 0.12 }), 200);
     });
   }, [graphData, direction]);
 
@@ -77,6 +105,9 @@ function AVWiringViewer({ graphData }) {
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         fitView
+        minZoom={0.1}
+        maxZoom={2.7}
+        panOnDrag={true}
       >
         <Controls />
         <Background />
