@@ -12,54 +12,52 @@ JSON-gesteuerter, validierbarer MVP-Viewer für A/V-Verkabelungsschemata, realis
 - Automatisches Layered-Layout mit ELK.js und Hierarchien (Areas als Compound-Nodes)
 - Devices/Nodes mit eigenen Ports, flexiblen Typen, Status, Kategorie/Kontext
 - Areas/Räume sollten verschachtelt funktionieren und Devices logisch inkl. Parent/Child-Verhältnissen gruppieren
-- Custom React-Node-Komponenten für Devices
+- Custom React-Node-Komponenten für Devices und Areas (mit Label)
 
 ---
 
 ## API-Stil / Schema
 
-- see `src/schemas/av-wiring-graph.schema.json`
-- Edges dürfen nur zwischen Device-Nodes, nicht zu Areas führen
-- Areas portlos, dienen nur als Gruppencontainer
+- Siehe `src/schemas/av-wiring-graph.schema.json`
+- Edges nur zwischen Device-Nodes, nicht zu Areas
+- Areas portlos, dienen als Gruppencontainer
 - Nodes referenzieren `areaId` für Gruppenzugehörigkeit, Areas können sich per `parentId` verschachteln
 - ELK Compound-Layout wird rekursiv aufgebaut (Area-Tree, Devices als Children)
 
 ---
 
-## Pain Points & Offene Probleme (Stand 13.11.2025):
+## Aktuelle Pain Points & Offene Probleme (Stand 13.11.2025):
 
-- **Areas zeigen keine eigenen Labels im Viewer (Label wird nicht zentral auf Area-Box gerendert)**
-- **Geräte/Nodes lassen sich aus ihrer Area herausziehen (React Flow Parent/Child "Sticky"-Verhalten nicht erreichbar)**
-- **Areas werden (visuell) nicht autoskaliert, sondern behalten Defaultmaß; wachsen nicht mit ihren Children, auch keine visuelle Verschachtelung/Nesting sichtbar (Rack in Raum, Zone in Halle etc.)**
-- **Edges zu Area-IDs waren entfernt, aber Context, was valide ist, bleibt kritisch für weiteres JSON-Model**
-- **Manche Geräte werden nicht korrekt als Child gerendert oder erscheinen neben den Areas**
-- **Nesting (Area in Area, Devices in Areas) rein semantisch, nicht wirklich visuell abgebildet**
+- **Labels auf Areas sichtbar und optisch korrekt (group-node label oben links, gut lesbar)**
+- **Subareas (Nesting) werden korrekt gerendert und Devices sind sticky innerhalb ihrer Parent-Area (keine Herausziehbarkeit mehr)**
+- **Area/Device-Overlapping ist durch ELK-Settings und Sizing deutlich reduziert**
+- **Bidirectional Ports (z.B. Netzwerk, USB) werden dynamisch platziert, teils aber noch auf falscher Seite (Platzierung beruht jetzt nach Layout auf realer Geometrie, ist aber z.T. noch nicht 100% korrekt für alle Fälle)**
 
 ---
 
-## Bisher Erreichte Verbesserungen
+## Erreichte Verbesserungen
 
-- Devices werden eingelesen, Ports als Handles, Edge-Rendering funktioniert wieder
-- Areas sind wieder differenzierte Background-Container ohne Ports
-- Fehlerhafte Edges (target=Area statt Node) werden validiert und nicht mehr zugelassen
-- Compound-Modell/Tree für Areas mit Parent/Child funktioniert semantisch in der Datenstruktur
-
----
-
-## Offene Anforderungen
-
-1. **Labels auf Areas sichtbar machen (zentriert, group node label)**
-2. **React Flow Parent/Child sticky behavior**: Nodes müssen beim Draggen in Areas verweilen
-3. **Autoscaling & Bounding von Areas (Größe dynamisch nach Devices, inkl. Padding)**
-4. **Visuelle Darstellung von Area-Nesting und Recursion**
-5. **Weitere Fehler im Demo-Graph erkennen/validieren (z.B. alle edges nur zwischen Device-Nodes)**
+- Areas visualisieren Label & Padding, Devices sowohl in Areas als auch standalone
+- Parent/Child-Sticky, Area-nesting, Drag-Konstraints und fitView-Anpassungen
+- Textgrößen für Labels und Nodes für bessere Lesbarkeit
+- Autosizing für Areas/Nesting und Devices, dynamischer spacing/padding
 
 ---
 
-## Kontext-Files
-- Siehe aktuelle `src/components/AVWiringViewer.tsx`, `src/lib/elkMapper.ts`, `src/data/sampleGraph.json`, `src/components/nodes/DeviceNode.tsx`
-- [GitHub-Repo Stand 13.11.2025](https://github.com/twobeass/AVFlowView)
-- Letzter Nutzer-Review (Pain Point-Liste) siehe Query/Antwortverlauf (2025-11-13)
+## Offene Anforderungen 
+
+1. **Bidirectional Ports endgültig korrekt dynamisch nach Layout positionieren (alle Wiring-Cases)**
+2. **UX-Feinschliff: Port-Icons/Slot-Indikatoren noch klarer, Text-Overlapping final verhindern**
+3. **Oversized Areas vermeiden, Autosizing nach Content/Children, nicht fix**
+4. **Alle Fehler in Demo-Graphen weiterhin prüfen (Edges etc.)**
+
+---
+
+## Referenz- und Kontext-Files
+- [`src/components/AVWiringViewer.tsx`](https://github.com/twobeass/AVFlowView/blob/main/src/components/AVWiringViewer.tsx)
+- [`src/lib/elkMapper.ts`](https://github.com/twobeass/AVFlowView/blob/main/src/lib/elkMapper.ts)
+- [`src/components/nodes/DeviceNode.tsx`](https://github.com/twobeass/AVFlowView/blob/main/src/components/nodes/DeviceNode.tsx)
+- [`src/data/sampleGraph.json`](https://github.com/twobeass/AVFlowView/blob/main/src/data/sampleGraph.json)
 
 ---
 
@@ -73,8 +71,11 @@ JSON-gesteuerter, validierbarer MVP-Viewer für A/V-Verkabelungsschemata, realis
 
 ## Nächste Entwicklungsschritte
 
-- React Flow Group-Node Parent/Child so umsetzen, dass keine Devices aus Areas rausgezogen werden können 
-- Viewport/fitView so anpassen, dass ALLE geschachtelten Devices/Areas optimal sichtbar sind
-- Autosizing, Area-Dynamik (keine absolute width/height vorgeben, sondern über Content)
-- Best Practice aus reactflow.dev Examples implementieren (Nesting/Subflow)
-- Viewer-UX Feinschliff für Produktionsreife
+- **Bidirectional-Ports final korrekt platzieren, ggf. Postprocessing ergänzen**
+- **UX/UI-Detailverbesserungen und Endkontrolle für Area/Label/Text/Handle-Kollisionen**
+- **Autosizing für Areas perfektionieren (kein absolutes Sizing mehr)**
+- **Demo-Daten laufend validieren/erweitern und Testszenarien anlegen**
+
+---
+
+_Last updated: 2025-11-13_
