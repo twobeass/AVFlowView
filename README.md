@@ -105,6 +105,31 @@ See `src/schemas/av-wiring-graph.schema.json` for full specification.
 }
 ```
 
+## Documentation
+
+For detailed information about the project:
+
+- **[`.github/copilot-instructions.md`](.github/copilot-instructions.md)** - Architecture and guidance for AI coding agents
+- **[`context.md`](context.md)** - Project overview and current status
+- **[`DOCUMENTATION_INDEX.md`](DOCUMENTATION_INDEX.md)** - Complete documentation index
+- **[`IMPLEMENTATION_STATUS.md`](IMPLEMENTATION_STATUS.md)** - Detailed implementation reference
+- **[`SESSION_SUMMARY.md`](SESSION_SUMMARY.md)** - Session accomplishments and technical highlights
+- **[`BIDIRECTIONAL_PORTS_REFERENCE.md`](BIDIRECTIONAL_PORTS_REFERENCE.md)** - Technical deep-dive on bidirectional port placement
+
+## Recent Accomplishments (2025-11-13)
+
+✅ **Comprehensive Styling System**: Professional UI with category-based colors and centralized configuration  
+✅ **Centralized Color Configuration**: All colors managed in `src/config/colors.ts` for easy customization  
+✅ **Side-by-Side Port Layout**: Inputs on left, outputs on right with CSS Grid layout  
+✅ **Wider Nodes**: Doubled node width (400-500px) for better readability  
+✅ **Perfect Handle Positioning**: Port handles positioned exactly on node edges  
+✅ **Category-Based Coloring**: Devices and edges colored by category (Audio, Video, Network, Control, Power)  
+✅ **Bidirectional Port Placement**: Automatically positions ports based on edge direction and neighbor geometry  
+✅ **AI Guidance Documentation**: Comprehensive instructions for AI coding agents  
+✅ **Clean Implementation**: 4-phase pipeline (computation → mapping → propagation → rendering)  
+✅ **Edge-Direction Aware**: SOURCE ports face targets, TARGET ports face sources  
+✅ **Layout-Constrained**: LR layouts only use EAST/WEST, TB layouts only use NORTH/SOUTH
+
 ## Roadmap
 
 - [ ] **Phase 1**: Basic rendering + validation ✅

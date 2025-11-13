@@ -1,18 +1,55 @@
 # AVFlowView Project Context (2025-11-13)
 
-## Ziel
+## Status: ✅ COMPLETE - Professional Styling System Implemented
 
-JSON-gesteuerter, validierbarer MVP-Viewer für A/V-Verkabelungsschemata, realisiert mit React Flow, ELK.js (layered auto-layout), Ajv (Validation), Gruppierungs-/Nesting-Logik sowie Styling/UX-Anforderungen für professionelle node-basierte Schematic-Views.
+JSON-gesteuerter, validierbarer A/V-Verkabelungsschema-Viewer, realisiert mit React Flow, ELK.js (layered auto-layout), Ajv (Validation), Gruppierungs-/Nesting-Logik sowie professionellem Styling-System für node-basierte Schematic-Views.
 
 ---
 
-## Stand der Technik
+## Implementierte Features
 
-- **Visualisierung von Devices, Areas (Raum, Rack, Zone etc.) und Kabeln per JSON Data Model**
-- Automatisches Layered-Layout mit ELK.js und Hierarchien (Areas als Compound-Nodes)
-- Devices/Nodes mit eigenen Ports, flexiblen Typen, Status, Kategorie/Kontext
-- Areas/Räume sollten verschachtelt funktionieren und Devices logisch inkl. Parent/Child-Verhältnissen gruppieren
-- Custom React-Node-Komponenten für Devices und Areas (mit Label)
+- ✅ **Visualisierung von Devices, Areas und Kabeln per JSON Data Model**
+- ✅ **Automatisches Layered-Layout mit ELK.js und Hierarchien**
+- ✅ **Devices/Nodes mit Ports, flexiblen Typen, Status, Kategorie**
+- ✅ **Verschachtelte Areas/Räume mit Parent/Child-Verhältnissen**
+- ✅ **Custom React-Node-Komponenten für Devices und Areas**
+- ✅ **Professionelles Styling-System mit zentraler Farbkonfiguration**
+- ✅ **Side-by-Side Port-Layout (Inputs links, Outputs rechts)**
+- ✅ **Kategorie-basierte Farbgebung für Devices und Edges**
+- ✅ **Doppelte Node-Breite (400-500px) für bessere Lesbarkeit**
+- ✅ **Perfekte Handle-Positionierung auf Node-Kanten**
+- ✅ **Bidirektionale Port-Platzierung basierend auf Edge-Richtung und Nachbar-Geometrie**
+- ✅ **AI Coding Guidance Dokumentation**
+
+---
+
+## Bidirectionale Ports (GELÖST)
+
+**Problem**: Bidirektionale Ports wurden an falschen Positionen gerendert (z.B. TOP statt LEFT)
+
+**Lösung**: 4-stufige Pipeline für automatische Port-Seitenauflösung:
+
+1. **Berechnung** (`getPortSideDynamic`): 
+   - Summe der dx/dy Distanzen zu allen verbundenen Nachbarn
+   - Edge-bewusste Richtung: SOURCE ports zeigen auf TARGET, TARGET auf SOURCE
+   - Layout-Richtung-Beschränkung: LR nur EAST/WEST, TB nur NORTH/SOUTH
+
+2. **Mapping** (`buildPortSidesMap`): 
+   - Saubere Karte aufbauen: `{nodeId: {portKey: side, ...}, ...}`
+   - An Layout-Return als `__portSides` property anhängen
+
+3. **Propagation** (`flattenElkGroups`): 
+   - portSidesMap an React-Layer weitergeben
+   - `computedSide` in Port-Objekte mergen
+
+4. **Rendering** (`DeviceNode`): 
+   - `elkSideToPosition()` mappt ELK-Seiten zu React Flow Positionen
+   - Handle an berechneter Position rendern
+
+**Test Case (panel1.net)**:
+- panel1 (SOURCE) → mx1 (TARGET, links von panel1)
+- dx = -53 (negativ)
+- Resultat: WEST (Links) ✅
 
 ---
 
@@ -23,10 +60,6 @@ JSON-gesteuerter, validierbarer MVP-Viewer für A/V-Verkabelungsschemata, realis
 - Areas portlos, dienen als Gruppencontainer
 - Nodes referenzieren `areaId` für Gruppenzugehörigkeit, Areas können sich per `parentId` verschachteln
 - ELK Compound-Layout wird rekursiv aufgebaut (Area-Tree, Devices als Children)
-
----
-
-## Aktuelle Pain Points & Offene Probleme (Stand 13.11.2025):
 
 - **Labels auf Areas sichtbar und optisch korrekt (group-node label oben links, gut lesbar)**
 - **Subareas (Nesting) werden korrekt gerendert und Devices sind sticky innerhalb ihrer Parent-Area (keine Herausziehbarkeit mehr)**

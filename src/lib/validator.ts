@@ -4,7 +4,7 @@ import schema from '../schemas/av-wiring-graph.schema.json';
 const ajv = new Ajv({ allErrors: true, strict: false });
 const validate = ajv.compile(schema);
 
-export function validateGraph(data) {
+export function validateGraph(data: any) {
   const valid = validate(data);
   if (!valid) {
     return {
