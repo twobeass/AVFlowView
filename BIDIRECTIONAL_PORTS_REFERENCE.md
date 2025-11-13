@@ -1,11 +1,24 @@
 # Bidirectional Port Placement - Technical Reference
 
-**Status**: ✅ Implemented and Tested  
-**Date**: November 13, 2025
+**Status**: ✅ Fully Implemented and Rendering Fixed  
+**Date**: November 13, 2025  
+**Latest Update**: November 13, 2025 - Fixed rendering and alignment
 
 ## Overview
 
 Bidirectional ports (ports without a fixed input/output direction) automatically position themselves based on their connected edges and the relative positions of connected nodes. This ensures that ports always face toward their connection partners, improving diagram clarity.
+
+## Recent Fixes (November 13, 2025)
+
+### Critical Bug Fix: Bidirectional Ports Not Rendering
+**Problem**: Bidirectional ports only had source handles, preventing incoming connections from rendering  
+**Solution**: Added BOTH source AND target handles at same position for each bidirectional port  
+**Result**: All bidirectional connections (Dante, Ethernet, Fiber) now render correctly
+
+### Vertical Alignment Fix
+**Problem**: Bidirectional ports rendered in separate section, misaligned with other ports  
+**Solution**: Integrated bidirectional ports into main two-column layout grid based on computed side  
+**Result**: Perfect vertical alignment with input/output ports
 
 ## Implementation Details
 
