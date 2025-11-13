@@ -1,7 +1,7 @@
-import Ajv from 'ajv';
+import Ajv from 'ajv/dist/2020';
 import schema from '../schemas/av-wiring-graph.schema.json';
 
-const ajv = new Ajv({ allErrors: true });
+const ajv = new Ajv({ allErrors: true, strict: false });
 const validate = ajv.compile(schema);
 
 export function validateGraph(data) {
