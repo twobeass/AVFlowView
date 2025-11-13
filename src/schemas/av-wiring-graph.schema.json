@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/av-wiring-graph.schema.json",
+  "title": "A/V Wiring Graph",
+  "type": "object",
+  "required": ["nodes", "edges"],
+  "additionalProperties": false,
+  "properties": {
+    "layout": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "direction": { "type": "string", "enum": ["LR", "TB"], "default": "LR", "description": "Left-to-Right oder Top-to-Bottom" },
+        "portBinding": { "type": "string", "enum": ["auto", "exact"], "default": "auto", "description": "Automatische Port-Wahl oder exakte Bindung" },
+        "areaFirst": { "type": "boolean", "default": true, "description": "Zuerst innerhalb von Areas layouten, dann global" },
+        "areaPadding": { "type": "number", "default": 24, "description": "Innenabstand von Area-Containern" }
+      }
+    },
+    "areas": {
+      "type": "array",
+      "default": [],
+      "items": { "$ref": "#/$defs/Area" }
+    },
+    "nodes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/Node" }
+    },
+    "edges": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/Edge" }
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "Area": {
+      "type": "object",
+      "required": ["id", "label"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9._:-]+$" },
+        "label": { "type": "string", "minLength": 1 },
+        "parentId": { "type": "string", "description": "Optionale Verschachtelung: Parent-Area-ID" },
+        "metadata": { "type": "object", "additionalProperties": true }
+      },
+      "description": "Portloser Container zur Gruppierung (z. B. Raum, Rack, Zone)"
+    },
+    "Node": {
+      "type": "object",
+      "required": ["id", "manufacturer", "model", "category", "status", "ports"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9._:-]+$" },
+        "manufacturer": { "type": "string", "minLength": 1 },
+        "model": { "type": "string", "minLength": 1 },
+        "category": { "type": "string" },
+        "subcategory": { "type": "string" },
+        "status": { "$ref": "#/$defs/NodeStatus" },
+        "label": { "type": "string" },
+        "areaId": { "type": "string", "description": "Optionale Area-ID für Gruppierung" },
+        "ports": {
+          "type": "object",
+          "description": "Ports als Objekt; Keys sind lokale Port-Schlüssel je Node",
+          "patternProperties": {
+            "^[A-Za-z0-9._:-]+$": { "$ref": "#/$defs/Port" }
+          },
+          "additionalProperties": false
+        },
+        "metadata": { "type": "object", "additionalProperties": true }
+      }
+    },
+    "Port": {
+      "type": "object",
+      "required": ["alignment", "label", "type", "gender"],
+      "additionalProperties": false,
+      "properties": {
+        "alignment": { "$ref": "#/$defs/PortAlignment" },
+        "label": { "type": "string", "minLength": 1 },
+        "type": { "type": "string", "examples": ["USB-C", "XLR", "SDI", "HDMI"] },
+        "gender": { "$ref": "#/$defs/PortGender" },
+        "metadata": { "type": "object", "additionalProperties": true }
+      }
+    },
+    "Edge": {
+      "type": "object",
+      "required": ["id", "source", "target"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9._:-]+$" },
+        "wireId": { "type": "string", "description": "Physische Kabelkennung" },
+        "category": { "type": "string" },
+        "subcategory": { "type": "string" },
+        "cableType": { "type": "string", "examples": ["CAT7", "Fiber", "HDMI", "SDI"] },
+        "label": { "type": "string" },
+        "source": { "type": "string", "description": "Quelle: Node-ID" },
+        "sourcePortKey": { "type": "string", "description": "Optional: Port-Key innerhalb des Source-Nodes" },
+        "target": { "type": "string", "description": "Ziel: Node-ID" },
+        "targetPortKey": { "type": "string", "description": "Optional: Port-Key innerhalb des Target-Nodes" },
+        "binding": { "type": "string", "enum": ["auto", "exact"], "description": "Edge-spezifische Port-Bindungsstrategie" },
+        "metadata": { "type": "object", "additionalProperties": true }
+      }
+    },
+    "PortAlignment": { "type": "string", "enum": ["In", "Out", "Bidirectional"] },
+    "PortGender": { "type": "string", "enum": ["M", "F", "N/A"] },
+    "NodeStatus": { "type": "string", "enum": ["Existing", "Regular", "Defect"] }
+  }
+}

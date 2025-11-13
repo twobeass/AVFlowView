@@ -1,0 +1,64 @@
+{
+  "layout": { "direction": "LR", "portBinding": "auto", "areaFirst": true, "areaPadding": 24 },
+  "areas": [
+    { "id": "roomA", "label": "Room A" },
+    { "id": "rack1", "label": "Rack 1", "parentId": "roomA" }
+  ],
+  "nodes": [
+    {
+      "id": "dev1",
+      "manufacturer": "ACME",
+      "model": "MX-32",
+      "category": "Video",
+      "subcategory": "Switcher",
+      "status": "Existing",
+      "label": "Matrix",
+      "areaId": "rack1",
+      "ports": {
+        "out1": { "alignment": "Out", "label": "SDI OUT 1", "type": "SDI", "gender": "N/A" },
+        "in1": { "alignment": "In", "label": "SDI IN 1", "type": "SDI", "gender": "N/A" }
+      }
+    },
+    {
+      "id": "dev2",
+      "manufacturer": "ACME",
+      "model": "DSP-8",
+      "category": "Audio",
+      "subcategory": "Amplifier",
+      "status": "Regular",
+      "label": "Amp",
+      "areaId": "roomA",
+      "ports": {
+        "ain1": { "alignment": "In", "label": "XLR IN 1", "type": "XLR", "gender": "F" },
+        "aout1": { "alignment": "Out", "label": "XLR OUT 1", "type": "XLR", "gender": "M" },
+        "svc": { "alignment": "Bidirectional", "label": "SERVICE", "type": "USB-C", "gender": "N/A" }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "wireId": "W-0001",
+      "category": "Video",
+      "subcategory": "Patch",
+      "cableType": "SDI",
+      "label": "Program",
+      "source": "dev1",
+      "sourcePortKey": "out1",
+      "target": "dev1",
+      "targetPortKey": "in1",
+      "binding": "exact"
+    },
+    {
+      "id": "e2",
+      "wireId": "W-0002",
+      "category": "Audio",
+      "subcategory": "Patch",
+      "cableType": "XLR",
+      "label": "Main feed",
+      "source": "dev1",
+      "target": "dev2",
+      "binding": "auto"
+    }
+  ]
+}
