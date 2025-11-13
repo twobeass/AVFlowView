@@ -8,7 +8,22 @@ const portAlignmentToPosition = {
 };
 
 export default function DeviceNode({ id, data }) {
-  const ports = data.ports ? Object.entries(data.ports) : [];
+  // safeguard: No data or no ports? Render fallback (prevents crash on area bounding boxes or corrupt nodes)
+  if (!data || !data.ports) {
+    return (
+      <div style={{
+        background: '#edeafd88',
+        border: '2px solid #ccc',
+        borderRadius: 8,
+        color: '#3339',
+        padding: 8
+      }}>
+        (unknown or aggregate)
+      </div>
+    );
+  }
+
+  const ports = Object.entries(data.ports);
   return (
     <div
       style={{
