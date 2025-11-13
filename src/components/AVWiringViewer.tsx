@@ -31,19 +31,19 @@ function flattenElkGroups(elkNode, graphData, parent=null) {
   const nodes = [];
   const isArea = graphData.areas.some(a => a.id === elkNode.id);
   if(isArea) {
-    // Use ELK-calculated dimensions for areas
     nodes.push({
       id: elkNode.id,
       type: 'groupNode',
       parentId: elkNode.parent || undefined,
       position: { x: elkNode.x, y: elkNode.y },
+      extent: elkNode.parent ? 'parent' : undefined,
+      draggable: !elkNode.parent, // only allow top-level areas to move
       style: {
         width: elkNode.width || 140,
         height: elkNode.height || 70,
       },
       data: { label: elkNode.label || elkNode.id },
       selectable: true,
-      draggable: true,
       expandParent: false,
     });
   } else if(graphData.nodes.some(n => n.id === elkNode.id)) {
