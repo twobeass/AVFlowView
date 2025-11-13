@@ -3,9 +3,11 @@ import { ReactFlow, ReactFlowProvider, useNodesState, useEdgesState, Controls, B
 import { layoutGraph } from '../lib/elkMapper';
 import { validateGraph } from '../lib/validator';
 import DeviceNode from './nodes/DeviceNode';
+import GroupNode from './nodes/GroupNode';
 
 const nodeTypes = {
   deviceNode: DeviceNode,
+  groupNode: GroupNode,
 };
 const edgeTypes = {};
 
@@ -29,21 +31,20 @@ function flattenElkGroups(elkNode, graphData, parent=null) {
   const nodes = [];
   const isArea = graphData.areas.some(a => a.id === elkNode.id);
   if(isArea) {
+    // Use ELK-calculated dimensions for areas
     nodes.push({
       id: elkNode.id,
-      type: 'group',
+      type: 'groupNode',
       parentId: elkNode.parent || undefined,
       position: { x: elkNode.x, y: elkNode.y },
       style: {
-        background: '#eef4fb',
-        border: '2px dashed #bbb',
-        borderRadius: 14,
-        opacity: 0.42,
-        minWidth: 140,
-        minHeight: 70
+        width: elkNode.width || 140,
+        height: elkNode.height || 70,
       },
       data: { label: elkNode.label || elkNode.id },
-      selectable: false
+      selectable: true,
+      draggable: true,
+      expandParent: false,
     });
   } else if(graphData.nodes.some(n => n.id === elkNode.id)) {
     // normal device
@@ -55,6 +56,7 @@ function flattenElkGroups(elkNode, graphData, parent=null) {
       position: { x: elkNode.x, y: elkNode.y },
       data: d,
       zIndex: 2,
+      extent: elkNode.parent ? 'parent' : undefined,
     });
   }
   if (elkNode.children) {
