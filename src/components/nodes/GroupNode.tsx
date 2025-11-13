@@ -1,6 +1,4 @@
-import React from 'react';
-
-export default function GroupNode({ id, data }) {
+export default function GroupNode({ id, data }: any) {
   return (
     <div
       style={{

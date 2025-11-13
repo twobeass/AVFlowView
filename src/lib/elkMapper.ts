@@ -5,20 +5,20 @@ const NODE_HEIGHT = 88;
 
 const elk = new ELK();
 
-function buildAreaTree(areas) {
-  const idMap = {};
-  areas.forEach(area => idMap[area.id] = { ...area, children: [] });
-  Object.values(idMap).forEach(area => {
-    if (area.parentId && idMap[area.parentId]) {
-      idMap[area.parentId].children.push(area);
+function buildAreaTree(areas: any) {
+  const idMap: any = {};
+  areas.forEach((area: any) => idMap[area.id] = { ...area, children: [] });
+  Object.values(idMap).forEach((area: any) => {
+    if ((area as any).parentId && (idMap as any)[(area as any).parentId]) {
+      (idMap as any)[(area as any).parentId].children.push(area);
     }
   });
-  return Object.values(idMap).filter(a => !a.parentId);
+  return Object.values(idMap).filter((a: any) => !(a as any).parentId);
 }
 
-function injectNodesIntoAreas(area, nodes, isHorizontal, allEdges) {
-  const childAreas = area.children.map(child => injectNodesIntoAreas(child, nodes, isHorizontal, allEdges));
-  const nodeChildren = nodes.filter(n => n.areaId === area.id).map(n => createElkNode(n, isHorizontal, allEdges));
+function injectNodesIntoAreas(area: any, nodes: any, isHorizontal: any, allEdges: any) {
+  const childAreas = area.children.map((child: any) => injectNodesIntoAreas(child, nodes, isHorizontal, allEdges));
+  const nodeChildren = nodes.filter((n: any) => n.areaId === area.id).map((n: any) => createElkNode(n, isHorizontal, allEdges));
   const allChildren = [...childAreas, ...nodeChildren];
   const areaObj = {
     id: area.id,
@@ -28,20 +28,20 @@ function injectNodesIntoAreas(area, nodes, isHorizontal, allEdges) {
     }
   };
   if (allChildren.length > 0) {
-    areaObj.children = allChildren;
+    (areaObj as any).children = allChildren;
   }
   return areaObj;
 }
 
-export async function layoutGraph(graphData, direction = 'LR') {
+export async function layoutGraph(graphData: any, direction = 'LR'): Promise<any> {
   const isHorizontal = direction === 'LR';
   const areas = Array.isArray(graphData.areas) ? graphData.areas : [];
   const nodes = Array.isArray(graphData.nodes) ? graphData.nodes : [];
   const edges = Array.isArray(graphData.edges) ? graphData.edges : [];
   const areaRoots = buildAreaTree(areas).map(rootArea => injectNodesIntoAreas(rootArea, nodes, isHorizontal, edges));
   const standaloneNodes = nodes
-    .filter(n => !n.areaId)
-    .map(n => createElkNode(n, isHorizontal, edges));
+    .filter((n: any) => !n.areaId)
+    .map((n: any) => createElkNode(n, isHorizontal, edges));
 
   const elkGraph = {
     id: 'root',
@@ -64,52 +64,111 @@ export async function layoutGraph(graphData, direction = 'LR') {
   const elkLayout = await elk.layout(elkGraph);
 
   // 2nd: Post-process & re-assign bidirectional port sides based on layout
-  const nodePos = {};
-  function collectPositions(elkNode) {
+  const nodePos: any = {};
+  function collectPositions(elkNode: any) {
     nodePos[elkNode.id] = elkNode;
     if (elkNode.children) elkNode.children.forEach(collectPositions);
   }
-  elkLayout.children.forEach(collectPositions);
+  (elkLayout.children || []).forEach(collectPositions);
 
-  function getPortSideDynamic(nodeId, portKey, isHorizontal) {
-    let edgesForPort = (graphData.edges || []).filter(e => 
+  function getPortSideDynamic(nodeId: any, portKey: any, isHorizontal: any) {
+    let edgesForPort = (graphData.edges || []).filter((e: any) =>
       (e.source === nodeId && e.sourcePortKey === portKey) ||
       (e.target === nodeId && e.targetPortKey === portKey)
     );
     let node = nodePos[nodeId];
     if (!node || !edgesForPort.length) return isHorizontal ? 'EAST' : 'SOUTH';
-    let right = 0, left = 0;
-    edgesForPort.forEach(e => {
-      let otherId = e.source === nodeId ? e.target : e.source;
-      let other = nodePos[otherId];
-      if (!other) return;
-      if (isHorizontal) {
-        if (other.x > node.x) right++; else left++;
-      } else {
-        if (other.y > node.y) right++; else left++;
-      }
-    });
-    if (right === 0 && left === 0) return isHorizontal ? 'EAST' : 'SOUTH';
-    return right >= left ? (isHorizontal ? 'EAST' : 'SOUTH') : (isHorizontal ? 'WEST' : 'NORTH');
-  }
-
-  // Traverse all nodes and update bidirectional port sides
-  function walkAndFixPorts(elkNode) {
+    
+    if (isHorizontal) {
+      // LR layout: ONLY allow EAST or WEST, never NORTH or SOUTH
+      // For SOURCE ports: face the target's direction
+      // For TARGET ports: face the source's direction
+      let totalDx = 0;
+      edgesForPort.forEach((e: any) => {
+        const isSource = e.source === nodeId;
+        const otherId = isSource ? e.target : e.source;
+        const other = nodePos[otherId];
+        if (other) {
+          const dx = other.x - node.x;
+          // For source ports, positive dx means target is right, so use dx as-is
+          // For target ports, positive dx means source is right, so we need to invert to face it
+          const direction = isSource ? dx : -dx;
+          totalDx += direction;
+        }
+      });
+      return totalDx > 0 ? 'EAST' : 'WEST';
+    } else {
+      // TB layout: ONLY allow SOUTH or NORTH, never EAST or WEST
+      // Sum up the y-positions of all neighbors
+      let totalDy = 0;
+      edgesForPort.forEach((e: any) => {
+        const otherId = e.source === nodeId ? e.target : e.source;
+        const other = nodePos[otherId];
+        if (other) {
+          totalDy += (other.y - node.y);
+        }
+      });
+      // If neighbors are more below (dy > 0), port faces TOP (NORTH)
+      // If neighbors are more above (dy < 0), port faces BOTTOM (SOUTH)
+      return totalDy > 0 ? 'NORTH' : 'SOUTH';
+    }
+  }  // Traverse all nodes and update bidirectional port sides
+  function walkAndFixPorts(elkNode: any) {
     if (elkNode.ports) {
-      elkNode.ports.forEach(port => {
+      elkNode.ports.forEach((port: any) => {
         if (port.properties && port.properties.side && port.properties.side.startsWith('BI_')) {
-          port.properties.side = getPortSideDynamic(elkNode.id, port.properties.portKey, isHorizontal);
+          const portKey = port.properties.portKey;
+          const newSide = getPortSideDynamic(elkNode.id, portKey, isHorizontal);
+          port.properties.side = newSide;
         }
       });
     }
-    if (elkNode.children) elkNode.children.forEach(walkAndFixPorts);
+    // Recursively traverse children (including nested areas and devices)
+    if (elkNode.children) {
+      elkNode.children.forEach((child: any) => walkAndFixPorts(child));
+    }
   }
-  elkLayout.children.forEach(walkAndFixPorts);
+  (elkLayout.children || []).forEach(walkAndFixPorts);
+  
+  // Build a clean map of resolved port sides (nodeId -> portKey -> side)
+  const portSidesMap: any = {};
+  function buildPortSidesMap(elkNode: any) {
+    if (elkNode.ports) {
+      portSidesMap[elkNode.id] = {};
+      elkNode.ports.forEach((port: any) => {
+        const portKey = port.properties?.portKey;
+        const side = port.properties?.side;
+        if (portKey && side) {
+          portSidesMap[elkNode.id][portKey] = side;
+        }
+      });
+    }
+    if (elkNode.children) {
+      elkNode.children.forEach((child: any) => buildPortSidesMap(child));
+    }
+  }
+  
+  (elkLayout.children || []).forEach(buildPortSidesMap);
+  
+  // Attach port sides map to the layout for later retrieval
+  (elkLayout as any).__portSides = portSidesMap;
   // ---
   return elkLayout;
 }
 
-function createElkNode(node, isHorizontal, allEdges) {
+function createElkNode(node: any, isHorizontal: any, _allEdges: any) {
+  const ports = Object.entries(node.ports).map(([key, port]) => ({
+    id: `${node.id}.${key}`,
+    properties: {
+      side: (port as any).alignment === 'In'
+        ? (isHorizontal ? 'WEST' : 'NORTH')
+        : (port as any).alignment === 'Out'
+          ? (isHorizontal ? 'EAST' : 'SOUTH')
+          : `BI_${key}`,
+      portKey: key
+    }
+  }));
+  
   return {
     id: node.id,
     label: node.label,
@@ -117,24 +176,19 @@ function createElkNode(node, isHorizontal, allEdges) {
     height: NODE_HEIGHT + (Object.keys(node.ports || {}).length * 11),
     targetPosition: isHorizontal ? 'left' : 'top',
     sourcePosition: isHorizontal ? 'right' : 'bottom',
-    ports: Object.entries(node.ports).map(([key, port]) => ({
-      id: `${node.id}.${key}`,
-      properties: {
-        side: port.alignment === 'In'
-          ? (isHorizontal ? 'WEST' : 'NORTH')
-          : port.alignment === 'Out'
-            ? (isHorizontal ? 'EAST' : 'SOUTH')
-            : `BI_${key}`,
-        portKey: key
-      }
-    }))
+    ports
   };
 }
 
-function mapEdgesToElk(edges) {
+function mapEdgesToElk(edges: any) {
   return Array.isArray(edges) ? edges.map(e => ({
     id: e.id,
     sources: [e.source],
-    targets: [e.target]
+    targets: [e.target],
+    properties: {
+      sourcePort: e.sourcePortKey ? `${e.source}.${e.sourcePortKey}` : undefined,
+      targetPort: e.targetPortKey ? `${e.target}.${e.targetPortKey}` : undefined,
+      binding: e.binding || undefined
+    }
   })) : [];
 }
