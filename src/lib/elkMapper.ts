@@ -1,6 +1,5 @@
 import ELK from 'elkjs/lib/elk.bundled.js';
 
-// Better base sizing for readability, dynamic height per port count
 const NODE_WIDTH = 200;
 const NODE_HEIGHT = 88;
 
@@ -59,22 +58,58 @@ export async function layoutGraph(graphData, direction = 'LR') {
     ],
     edges: mapEdgesToElk(edges)
   };
-  return await elk.layout(elkGraph);
+
+  // ---
+  // 1st: Run ELK layout
+  const elkLayout = await elk.layout(elkGraph);
+
+  // 2nd: Post-process & re-assign bidirectional port sides based on layout
+  const nodePos = {};
+  function collectPositions(elkNode) {
+    nodePos[elkNode.id] = elkNode;
+    if (elkNode.children) elkNode.children.forEach(collectPositions);
+  }
+  elkLayout.children.forEach(collectPositions);
+
+  function getPortSideDynamic(nodeId, portKey, isHorizontal) {
+    let edgesForPort = (graphData.edges || []).filter(e => 
+      (e.source === nodeId && e.sourcePortKey === portKey) ||
+      (e.target === nodeId && e.targetPortKey === portKey)
+    );
+    let node = nodePos[nodeId];
+    if (!node || !edgesForPort.length) return isHorizontal ? 'EAST' : 'SOUTH';
+    let right = 0, left = 0;
+    edgesForPort.forEach(e => {
+      let otherId = e.source === nodeId ? e.target : e.source;
+      let other = nodePos[otherId];
+      if (!other) return;
+      if (isHorizontal) {
+        if (other.x > node.x) right++; else left++;
+      } else {
+        if (other.y > node.y) right++; else left++;
+      }
+    });
+    if (right === 0 && left === 0) return isHorizontal ? 'EAST' : 'SOUTH';
+    return right >= left ? (isHorizontal ? 'EAST' : 'SOUTH') : (isHorizontal ? 'WEST' : 'NORTH');
+  }
+
+  // Traverse all nodes and update bidirectional port sides
+  function walkAndFixPorts(elkNode) {
+    if (elkNode.ports) {
+      elkNode.ports.forEach(port => {
+        if (port.properties && port.properties.side && port.properties.side.startsWith('BI_')) {
+          port.properties.side = getPortSideDynamic(elkNode.id, port.properties.portKey, isHorizontal);
+        }
+      });
+    }
+    if (elkNode.children) elkNode.children.forEach(walkAndFixPorts);
+  }
+  elkLayout.children.forEach(walkAndFixPorts);
+  // ---
+  return elkLayout;
 }
 
 function createElkNode(node, isHorizontal, allEdges) {
-  function dynamicBidirectionalSide(nodeId, portKey) {
-    // Assign left (WEST) or right (EAST) for LR, based on edge direction (if any)
-    if (!allEdges) return isHorizontal ? 'EAST' : 'SOUTH';
-    let outRight = 0, outLeft = 0;
-    allEdges.forEach(edge => {
-      if (edge.source === nodeId && edge.sourcePortKey === portKey) outRight++;
-      if (edge.target === nodeId && edge.targetPortKey === portKey) outLeft++;
-    });
-    if (outLeft === 0 && outRight === 0) return isHorizontal ? 'EAST' : 'SOUTH';
-    return outRight >= outLeft ? (isHorizontal ? 'EAST' : 'SOUTH') : (isHorizontal ? 'WEST' : 'NORTH');
-  }
-
   return {
     id: node.id,
     label: node.label,
@@ -89,7 +124,7 @@ function createElkNode(node, isHorizontal, allEdges) {
           ? (isHorizontal ? 'WEST' : 'NORTH')
           : port.alignment === 'Out'
             ? (isHorizontal ? 'EAST' : 'SOUTH')
-            : dynamicBidirectionalSide(node.id, key),
+            : `BI_${key}`,
         portKey: key
       }
     }))
