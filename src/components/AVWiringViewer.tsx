@@ -14,33 +14,54 @@ function mapEdgesToReactFlow(elkEdges, originalEdges) {
     const original = originalEdges.find(e => e.id === elkEdge.id);
     return {
       id: elkEdge.id,
-      source: original.source,
-      target: original.target,
+      source: elkEdge.sources[0] || original?.source || '',
+      target: elkEdge.targets[0] || original?.target || '',
+      label: original?.label || '',
       animated: false,
-      label: original.label || '',
-      style: { stroke: 'black' }
+      style: { stroke: '#344', strokeWidth: 2 },
+      type: 'default'
     };
   });
 }
 
-function areaNodeRenderer(node) {
-  // Render area as a labeled box
-  return {
-    ...node,
-    data: { label: node.data?.label || node.id },
-    style: {
-      background: '#eef4fb',
-      border: '2px dashed #aaa',
-      borderRadius: 10,
-      minHeight: 60,
-      minWidth: 200,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      opacity: 0.55,
-      zIndex: 0
+function flattenElk(layouted, graphData) {
+  // Recursively flatten ELK-compound structure to React Flow nodes, assign positions and types.
+  const nodes = [];
+  function traverse(elkNode, parentIsArea) {
+    // if this node matches an area in the input, render it as area (default), otherwise as deviceNode
+    if(graphData.areas.some(a => a.id === elkNode.id)) {
+      nodes.push({
+        id: elkNode.id,
+        position: { x: elkNode.x, y: elkNode.y },
+        data: { label: elkNode.label },
+        type: 'default',
+        selectable: false,
+        style: {
+          background: '#eef4fb',
+          border: '2px dashed #bbb',
+          borderRadius: 10,
+          minHeight: 60,
+          minWidth: 140,
+          opacity: 0.45,
+          zIndex: 0
+        }
+      });
+    } else if(graphData.nodes.some(n => n.id === elkNode.id)) {
+      const d = graphData.nodes.find(n => n.id === elkNode.id);
+      nodes.push({
+        id: elkNode.id,
+        position: { x: elkNode.x, y: elkNode.y },
+        data: d,
+        type: 'deviceNode',
+        zIndex: 2
+      });
     }
-  };
+    if (elkNode.children) {
+      elkNode.children.forEach(child => traverse(child, true));
+    }
+  }
+  layouted.children.forEach(node => traverse(node, false));
+  return nodes;
 }
 
 function AVWiringViewer({ graphData }) {
@@ -58,34 +79,10 @@ function AVWiringViewer({ graphData }) {
     }
 
     layoutGraph(graphData, direction).then(layouted => {
-      // area children to nodes, areas themselves as area nodes
-      const rfNodes = layouted.children.flatMap(area => {
-        if (area.children) {
-          // area as box
-          const areaBox = areaNodeRenderer({
-            id: area.id,
-            position: { x: area.x, y: area.y },
-            data: { label: area.label },
-            type: 'default',
-            selectable: false,
-            zIndex: 0
-          });
-          // children
-          const areaChildren = area.children.map(n => ({
-            id: n.id,
-            position: { x: n.x, y: n.y },
-            data: graphData.nodes.find(gn => gn.id === n.id),
-            type: 'deviceNode',
-            zIndex: 2
-          }));
-          return [areaBox, ...areaChildren];
-        }
-        // areas ohne children ausblenden
-        return [];
-      });
+      const rfNodes = flattenElk(layouted, graphData);
       setNodes(rfNodes);
       setEdges(mapEdgesToReactFlow(layouted.edges, graphData.edges));
-      setTimeout(() => fitView({ duration: 800, padding: 0.12 }), 200);
+      setTimeout(() => fitView({ duration: 800, padding: 0.11 }), 240);
     });
   }, [graphData, direction]);
 
