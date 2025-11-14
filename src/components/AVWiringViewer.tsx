@@ -2,33 +2,85 @@ import { useState, useEffect } from 'react';
 import { ReactFlow, ReactFlowProvider, useNodesState, useEdgesState, Controls, Background, useReactFlow } from '@xyflow/react';
 import { layoutGraph } from '../lib/elkMapper';
 import { validateGraph } from '../lib/validator';
+import { processOrthogonalRouting } from '../lib/orthogonalRouter';
 import DeviceNode from './nodes/DeviceNode';
 import GroupNode from './nodes/GroupNode';
+import SmartEdge from './edges/SmartEdge';
 import FocusModePanel from './FocusModePanel';
 
 import { edgeCategoryColors } from '../config/colors';
-import { calculateNeighborhood, filterGraphByNeighborhood, isDeviceNode, getNodeLabel } from '../lib/focusMode';
+import { calculateNeighborhood, filterGraphByNeighborhood } from '../lib/focusMode';
 
 const nodeTypes = {
   deviceNode: DeviceNode,
   groupNode: GroupNode,
 };
-const edgeTypes = {};
+const edgeTypes = {
+  smartEdge: SmartEdge,
+};
 
 // Category-based edge colors
 function getEdgeCategoryColor(category: string) {
   return edgeCategoryColors[category as keyof typeof edgeCategoryColors] || edgeCategoryColors.Default;
 }
 
-function mapEdgesToReactFlow(elkEdges: any, originalEdges: any) {
+function mapEdgesToReactFlow(elkEdges: any, originalEdges: any, graphData: any) {
   return elkEdges.map((elkEdge: any) => {
     const original = originalEdges.find((e: any) => e.id === elkEdge.id);
     const edgeColor = getEdgeCategoryColor(original?.category || '');
     
+    // Get port alignments to detect inverted edges
+    let sourceNode = graphData?.nodes?.find((n: any) => n.id === original?.source);
+    let targetNode = graphData?.nodes?.find((n: any) => n.id === original?.target);
+    let sourcePort = sourceNode?.ports?.[original?.sourcePortKey];
+    let targetPort = targetNode?.ports?.[original?.targetPortKey];
+    
+    // Check if edge direction is inverted (In->Out instead of Out->In)
+    const isInverted = sourcePort?.alignment === 'In' && targetPort?.alignment === 'Out';
+    
+    // Swap source/target if inverted
+    let actualSource = isInverted ? original?.target : original?.source;
+    let actualTarget = isInverted ? original?.source : original?.target;
+    let actualSourcePortKey = isInverted ? original?.targetPortKey : original?.sourcePortKey;
+    let actualTargetPortKey = isInverted ? original?.sourcePortKey : original?.targetPortKey;
+    
+    // Re-fetch nodes and ports after potential swap
+    sourceNode = graphData?.nodes?.find((n: any) => n.id === actualSource);
+    targetNode = graphData?.nodes?.find((n: any) => n.id === actualTarget);
+    sourcePort = sourceNode?.ports?.[actualSourcePortKey];
+    targetPort = targetNode?.ports?.[actualTargetPortKey];
+    
+    // Determine correct handle IDs for bidirectional ports
+    let sourceHandle = actualSourcePortKey || undefined;
+    let targetHandle = actualTargetPortKey || undefined;
+    
+    if (sourcePort?.alignment === 'Bidirectional') {
+      sourceHandle = `${actualSourcePortKey}-source`;
+    }
+    
+    if (targetPort?.alignment === 'Bidirectional') {
+      targetHandle = `${actualTargetPortKey}-target`;
+    }
+    
+    // Extract ELK routing information (sections with bendpoints)
+    let elkPoints: any[] = [];
+    if (elkEdge.sections && elkEdge.sections.length > 0) {
+      const section = elkEdge.sections[0];
+      elkPoints.push({ x: section.startPoint.x, y: section.startPoint.y });
+      
+      if (section.bendPoints) {
+        section.bendPoints.forEach((bp: any) => {
+          elkPoints.push({ x: bp.x, y: bp.y });
+        });
+      }
+      
+      elkPoints.push({ x: section.endPoint.x, y: section.endPoint.y });
+    }
+    
     return {
       id: elkEdge.id,
-      source: elkEdge.sources[0] || original?.source || '',
-      target: elkEdge.targets[0] || original?.target || '',
+      source: actualSource || '',
+      target: actualTarget || '',
       label: original?.label || '',
       animated: false,
       style: { 
@@ -37,8 +89,12 @@ function mapEdgesToReactFlow(elkEdges: any, originalEdges: any) {
       },
       type: 'smoothstep',
       // When edges specify port keys, attach to specific handles so edges snap to them
-      sourceHandle: original?.sourcePortKey || undefined,
-      targetHandle: original?.targetPortKey || undefined
+      sourceHandle: sourceHandle,
+      targetHandle: targetHandle,
+      // Pass ELK routing data to the edge
+      data: {
+        elkPoints: elkPoints.length > 0 ? elkPoints : undefined,
+      }
     };
   });
 }
@@ -136,7 +192,13 @@ function AVWiringViewer({ graphData }: { graphData: any }) {
         rfNodes.push(...flattenElkGroups(root, graphData, null, portSidesMap));
       });
       
-      const rfEdges = mapEdgesToReactFlow(layouted.edges || [], graphData.edges || []);
+      let rfEdges = mapEdgesToReactFlow(layouted.edges || [], graphData.edges || [], graphData);
+      
+      // Use ELK routing directly instead of re-processing
+      rfEdges = rfEdges.map((edge: any) => ({
+        ...edge,
+        type: 'smartEdge',
+      }));
       
       // Store full graph data
       setFullGraphData(graphData);
@@ -160,7 +222,7 @@ function AVWiringViewer({ graphData }: { graphData: any }) {
   }, [graphData, direction]);
 
   // Handle node click for focus mode
-  const handleNodeClick = async (event: any, node: any) => {
+  const handleNodeClick = async (_event: any, node: any) => {
     // Only allow focusing on device nodes
     if (node.type !== 'deviceNode') {
       return;
@@ -235,7 +297,22 @@ function AVWiringViewer({ graphData }: { graphData: any }) {
         },
       }));
 
-      const rfEdges = mapEdgesToReactFlow(layouted.edges || [], filteredGraphData.edges || []);
+      let rfEdges = mapEdgesToReactFlow(layouted.edges || [], filteredGraphData.edges || [], filteredGraphData);
+      
+      // Apply orthogonal routing
+      try {
+        const routedEdges = processOrthogonalRouting(rfEdges, rfNodes, layouted);
+        rfEdges = routedEdges.map((edge: any) => ({
+          ...edge,
+          type: 'smartEdge',
+        }));
+      } catch (error) {
+        console.warn('Orthogonal routing in focus mode failed:', error);
+        rfEdges = rfEdges.map((edge: any) => ({
+          ...edge,
+          type: 'smoothstep',
+        }));
+      }
 
       setNodes(rfNodes);
       setEdges(rfEdges);
@@ -256,7 +333,7 @@ function AVWiringViewer({ graphData }: { graphData: any }) {
   };
 
   // Update focus mode when depth or direction changes
-  const updateFocusMode = async (updates: Partial<typeof focusMode>) => {
+  const updateFocusMode = async (updates: Partial<typeof focusMode>): Promise<void> => {
     if (!focusMode.enabled || !focusMode.focusedNodeId || !fullGraphData) return;
 
     const newFocusMode = { ...focusMode, ...updates };
@@ -309,7 +386,22 @@ function AVWiringViewer({ graphData }: { graphData: any }) {
         },
       }));
 
-      const rfEdges = mapEdgesToReactFlow(layouted.edges || [], filteredGraphData.edges || []);
+      let rfEdges = mapEdgesToReactFlow(layouted.edges || [], filteredGraphData.edges || [], filteredGraphData);
+      
+      // Apply orthogonal routing
+      try {
+        const routedEdges = processOrthogonalRouting(rfEdges, rfNodes, layouted);
+        rfEdges = routedEdges.map((edge: any) => ({
+          ...edge,
+          type: 'smartEdge',
+        }));
+      } catch (error) {
+        console.warn('Orthogonal routing in focus mode update failed:', error);
+        rfEdges = rfEdges.map((edge: any) => ({
+          ...edge,
+          type: 'smoothstep',
+        }));
+      }
 
       setNodes(rfNodes);
       setEdges(rfEdges);
