@@ -1,12 +1,6 @@
 import { Handle, Position } from '@xyflow/react';
 import { categoryColors, portAlignmentColors, textColors } from '../../config/colors';
 
-const portAlignmentToPosition = {
-  In: Position.Left,
-  Out: Position.Right,
-  Bidirectional: Position.Right, // smarter default (optional: make dynamic)
-};
-
 function elkSideToPosition(side: any) {
   if (!side) return undefined;
   switch (side) {
@@ -142,7 +136,7 @@ export default function DeviceNode({ id: _id, data }: any) {
                     <>
                       <Handle
                         type="target"
-                        id={key}
+                        id={`${key}-target`}
                         position={Position.Left}
                         style={{
                           background: handleColor,
@@ -155,7 +149,7 @@ export default function DeviceNode({ id: _id, data }: any) {
                       />
                       <Handle
                         type="source"
-                        id={key}
+                        id={`${key}-source`}
                         position={Position.Left}
                         style={{
                           background: handleColor,
@@ -215,7 +209,7 @@ export default function DeviceNode({ id: _id, data }: any) {
                     <>
                       <Handle
                         type="target"
-                        id={key}
+                        id={`${key}-target`}
                         position={Position.Right}
                         style={{
                           background: handleColor,
@@ -228,7 +222,7 @@ export default function DeviceNode({ id: _id, data }: any) {
                       />
                       <Handle
                         type="source"
-                        id={key}
+                        id={`${key}-source`}
                         position={Position.Right}
                         style={{
                           background: handleColor,

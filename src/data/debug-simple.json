@@ -1,0 +1,79 @@
+{
+  "areas": [],
+  "nodes": [
+    {
+      "id": "device1",
+      "manufacturer": "Test",
+      "model": "Source Device",
+      "category": "Camera",
+      "status": "Regular",
+      "label": "Device 1",
+      "ports": {
+        "out1": {
+          "alignment": "Out",
+          "label": "Output 1",
+          "type": "SDI",
+          "gender": "M"
+        },
+          "out2": {
+          "alignment": "Out",
+          "label": "Output 2",
+          "type": "SDI",
+          "gender": "M"
+        }
+      }
+    },
+    {
+      "id": "device2",
+      "manufacturer": "Test",
+      "model": "Destination Device",
+      "category": "Router",
+      "status": "Regular",
+      "label": "Device 2",
+      "ports": {
+        "in1": {
+          "alignment": "In",
+          "label": "Input 1",
+          "type": "SDI",
+          "gender": "F"
+        }
+      }
+    },
+    {
+      "id": "device3",
+      "manufacturer": "Test",
+      "model": "Destination Device",
+      "category": "Router",
+      "status": "Regular",
+      "label": "Device 3",
+      "ports": {
+        "in1": {
+          "alignment": "In",
+          "label": "Input 1",
+          "type": "SDI",
+          "gender": "F"
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "source": "device1",
+      "sourcePortKey": "out1",
+      "target": "device2",
+      "targetPortKey": "in1",
+      "label": "Connection 1",
+      "category": "Video"
+    },
+    {
+      "id": "e2",
+      "source": "device1",
+      "sourcePortKey": "out2",
+      "target": "device3",
+      "targetPortKey": "in1",
+      "label": "Connection 2",
+      "category": "Video"
+    }
+  ]
+}

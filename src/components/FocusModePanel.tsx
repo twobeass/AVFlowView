@@ -1,6 +1,4 @@
-import React from 'react';
-
-interface FocusModePanelProps {
+interface FocusModeProps {
   enabled: boolean;
   focusedNodeId: string | null;
   focusedNodeLabel: string | null;
@@ -19,7 +17,6 @@ interface FocusModePanelProps {
 
 export default function FocusModePanel({
   enabled,
-  focusedNodeId,
   focusedNodeLabel,
   depthOutgoing,
   depthIncoming,
@@ -32,7 +29,7 @@ export default function FocusModePanel({
   onFollowOutgoingChange,
   onFollowIncomingChange,
   onExitFocus,
-}: FocusModePanelProps) {
+}: FocusModeProps) {
   // Only render when enabled
   if (!enabled) {
     return null;
