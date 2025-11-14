@@ -38,10 +38,10 @@ function mapEdgesToReactFlow(elkEdges: any, originalEdges: any) {
         stroke: edgeColor, 
         strokeWidth: 2.5,
       },
-      type: 'smoothstep', // Use smoothstep for nice curved routing
+      type: 'smoothstep',
       // When edges specify port keys, attach to specific handles so edges snap to them
       sourceHandle: original?.sourcePortKey || undefined,
-      targetHandle: original?.targetPortKey || undefined
+      targetHandle: original?.targetPortKey || undefined,
     };
   });
 }

@@ -1,7 +1,9 @@
 import ELK from 'elkjs/lib/elk.bundled.js';
 
-const NODE_WIDTH = 160;
-const NODE_HEIGHT = 88;
+// Node dimensions matching DeviceNode styling
+const NODE_WIDTH = 440;
+const BASE_NODE_HEIGHT = 100;
+const PORT_HEIGHT_SPACING = 20;
 
 const elk = new ELK();
 
@@ -24,9 +26,10 @@ function injectNodesIntoAreas(area: any, nodes: any, isHorizontal: any) {
     id: area.id,
     label: area.label,
     layoutOptions: {
-      'elk.padding': '[top=80,left=80,bottom=80,right=80]',
-      'elk.spacing.nodeNode': '200',
-      'elk.layered.spacing.nodeNodeBetweenLayers': '250',
+      // Extra top padding for area labels
+      'elk.padding': '[top=50,left=30,bottom=30,right=30]',
+      'elk.spacing.nodeNode': '100',
+      'elk.layered.spacing.nodeNodeBetweenLayers': '150',
       'elk.algorithm': 'layered',
       'elk.direction': isHorizontal ? 'RIGHT' : 'DOWN',
       'elk.aspectRatio': '1.5',
@@ -56,12 +59,12 @@ export async function layoutGraph(graphData: any, direction = 'LR'): Promise<any
     layoutOptions: {
       'elk.algorithm': 'layered',
       'elk.direction': isHorizontal ? 'RIGHT' : 'DOWN',
-      'elk.spacing.nodeNode': '200',
-      'elk.layered.spacing.nodeNodeBetweenLayers': '250',
-      'elk.layered.spacing.edgeNodeBetweenLayers': '100',
+      'elk.spacing.nodeNode': '100',
+      'elk.layered.spacing.nodeNodeBetweenLayers': '150',
+      'elk.layered.spacing.edgeNodeBetweenLayers': '50',
       'elk.layered.spacing.edgeEdgeBetweenLayers': '50',
       'elk.hierarchyHandling': 'INCLUDE_CHILDREN',
-      'elk.padding': '[top=60,left=60,bottom=60,right=60]',
+      'elk.padding': '[top=30,left=30,bottom=30,right=30]',
       'elk.layered.nodePlacement.strategy': 'NETWORK_SIMPLEX',
       'elk.layered.nodePlacement.bk.fixedAlignment': 'BALANCED',
       'elk.separateConnectedComponents': 'true',
@@ -80,6 +83,9 @@ export async function layoutGraph(graphData: any, direction = 'LR'): Promise<any
 }
 
 function createElkNode(node: any, isHorizontal: any) {
+  const portCount = Object.keys(node.ports || {}).length;
+  const nodeHeight = BASE_NODE_HEIGHT + (portCount * PORT_HEIGHT_SPACING);
+  
   const ports = Object.entries(node.ports).map(([key, port]) => ({
     id: `${node.id}.${key}`,
     properties: {
@@ -94,7 +100,7 @@ function createElkNode(node: any, isHorizontal: any) {
     id: node.id,
     label: node.label,
     width: NODE_WIDTH,
-    height: NODE_HEIGHT + (Object.keys(node.ports || {}).length * 11),
+    height: nodeHeight,
     targetPosition: isHorizontal ? 'left' : 'top',
     sourcePosition: isHorizontal ? 'right' : 'bottom',
     ports

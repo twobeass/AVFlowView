@@ -1,11 +1,5 @@
 import { Handle, Position } from '@xyflow/react';
-import { categoryColors, portAlignmentColors } from '../../config/colors';
-
-const portAlignmentToPosition = {
-  In: Position.Left,
-  Out: Position.Right,
-  Bidirectional: Position.Right,
-};
+import { categoryColors, textColors } from '../../config/colors';
 
 function getCategoryStyles(category: string) {
   return categoryColors[category as keyof typeof categoryColors] || categoryColors.Default;
@@ -21,6 +15,7 @@ export default function DeviceNode({ id: _id, data }: any) {
         color: '#666',
         padding: 12,
         fontSize: 13,
+        minWidth: 400,
       }}>
         (unknown device)
       </div>
@@ -30,70 +25,167 @@ export default function DeviceNode({ id: _id, data }: any) {
   const categoryStyles = getCategoryStyles(data.category);
   const ports = Object.entries(data.ports);
 
+  // Separate ports by alignment
+  const inputPorts = ports.filter(([_, port]: any) => port.alignment === 'In');
+  const outputPorts = ports.filter(([_, port]: any) => port.alignment === 'Out');
+  const bidirectionalPorts = ports.filter(([_, port]: any) => port.alignment === 'Bidirectional');
+
   return (
     <div
       style={{
         background: categoryStyles.background,
         border: `2px solid ${categoryStyles.border}`,
         borderRadius: 8,
-        minWidth: 280,
-        padding: 12,
+        minWidth: 400,
+        maxWidth: 500,
+        padding: 0,
         boxSizing: 'border-box',
-        fontSize: 14,
+        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif",
         boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
       }}
     >
+      {/* Header Section */}
       <div style={{ 
-        fontWeight: 'bold', 
-        marginBottom: 4, 
-        fontSize: 17, 
-        lineHeight: 1.16 
+        padding: '12px 12px 8px 12px',
       }}>
-        {data.label || data.model}
+        <div style={{ 
+          fontWeight: 600, 
+          fontSize: 16,
+          color: textColors.primary,
+          marginBottom: 4,
+          lineHeight: 1.2,
+        }}>
+          {data.label || data.model}
+        </div>
+        <div style={{ 
+          fontSize: 13, 
+          color: textColors.secondary,
+        }}>
+          {data.manufacturer}
+        </div>
       </div>
+
+      {/* Divider */}
       <div style={{ 
-        fontSize: 13, 
-        color: '#666', 
-        marginBottom: 4 
-      }}>
-        {data.manufacturer}
-      </div>
+        borderTop: `1px solid ${categoryStyles.border}`,
+        opacity: 0.3,
+      }} />
+
+      {/* Ports Section */}
       <div style={{ 
-        width: '100%', 
-        borderTop: '1px solid #ccc', 
-        paddingTop: 6, 
-        marginTop: 2, 
-        wordBreak: 'break-word', 
-        paddingBottom: 6 
+        padding: '12px 0',
       }}>
-        {ports.map(([key, port]: any) => {
-          const position = (portAlignmentToPosition as any)[port.alignment] || Position.Right;
-          const handleColor = (portAlignmentColors as any)[port.alignment] || portAlignmentColors.Out;
-          const isBidirectional = port.alignment === "Bidirectional";
-          
-          return (
-            <div key={key} style={{ 
-              fontSize: 12, 
-              marginBottom: 4, 
-              position: 'relative', 
-              paddingRight: 12 
+        {/* Side-by-Side Grid for Inputs and Outputs */}
+        {(inputPorts.length > 0 || outputPorts.length > 0) && (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: 8,
+            marginBottom: bidirectionalPorts.length > 0 ? 8 : 0,
+          }}>
+            {/* Left Column - Inputs */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 4,
             }}>
-              {port.label} ({port.type})
-              {isBidirectional ? (
-                <>
+              {inputPorts.map(([key, port]: any) => (
+                <div key={key} style={{ 
+                  fontSize: 12,
+                  color: textColors.tertiary,
+                  position: 'relative',
+                  paddingLeft: 12,
+                  textAlign: 'left',
+                }}>
+                  {port.label} ({port.type})
+                  <Handle
+                    type="target"
+                    id={key}
+                    position={Position.Left}
+                    style={{
+                      background: '#1976D2',
+                      width: 12,
+                      height: 12,
+                      border: '2px solid #fff',
+                      left: 0,
+                      transition: 'all 0.2s ease-in-out',
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Right Column - Outputs */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 4,
+              alignItems: 'flex-end',
+            }}>
+              {outputPorts.map(([key, port]: any) => (
+                <div key={key} style={{ 
+                  fontSize: 12,
+                  color: textColors.tertiary,
+                  position: 'relative',
+                  paddingRight: 12,
+                  textAlign: 'right',
+                }}>
+                  {port.label} ({port.type})
+                  <Handle
+                    type="source"
+                    id={key}
+                    position={Position.Right}
+                    style={{
+                      background: '#43A047',
+                      width: 12,
+                      height: 12,
+                      border: '2px solid #fff',
+                      right: 0,
+                      transition: 'all 0.2s ease-in-out',
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Bidirectional Ports - Below Grid */}
+        {bidirectionalPorts.length > 0 && (
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 4,
+            paddingLeft: 12,
+          }}>
+            {bidirectionalPorts.map(([key, port]: any) => {
+              // Determine side based on port properties or default to right
+              const computedSide = (port as any).computedSide || 'right';
+              const position = computedSide === 'left' ? Position.Left : Position.Right;
+              const isLeft = position === Position.Left;
+              
+              return (
+                <div key={key} style={{ 
+                  fontSize: 12,
+                  color: textColors.tertiary,
+                  position: 'relative',
+                  paddingLeft: isLeft ? 12 : 0,
+                  paddingRight: isLeft ? 0 : 12,
+                  textAlign: isLeft ? 'left' : 'right',
+                }}>
+                  {port.label} ({port.type})
                   <Handle
                     type="source"
                     id={key}
                     position={position}
                     style={{
-                      background: handleColor,
-                      width: 10,
-                      height: 10,
+                      background: '#F57C00',
+                      width: 12,
+                      height: 12,
                       border: '2px solid #fff',
-                      left: position === Position.Left ? -7 : undefined,
-                      right: position === Position.Right ? -7 : undefined,
-                      top: position === Position.Top ? -7 : undefined,
-                      bottom: position === Position.Bottom ? -7 : undefined,
+                      left: isLeft ? 0 : undefined,
+                      right: isLeft ? undefined : 0,
+                      transition: 'all 0.2s ease-in-out',
                     }}
                   />
                   <Handle
@@ -101,37 +193,20 @@ export default function DeviceNode({ id: _id, data }: any) {
                     id={key}
                     position={position}
                     style={{
-                      background: handleColor,
-                      width: 10,
-                      height: 10,
+                      background: '#F57C00',
+                      width: 12,
+                      height: 12,
                       border: '2px solid #fff',
-                      left: position === Position.Left ? -7 : undefined,
-                      right: position === Position.Right ? -7 : undefined,
-                      top: position === Position.Top ? -7 : undefined,
-                      bottom: position === Position.Bottom ? -7 : undefined,
+                      left: isLeft ? 0 : undefined,
+                      right: isLeft ? undefined : 0,
+                      transition: 'all 0.2s ease-in-out',
                     }}
                   />
-                </>
-              ) : (
-                <Handle
-                  type={port.alignment === "In" ? "target" : "source"}
-                  id={key}
-                  position={position}
-                  style={{
-                    background: handleColor,
-                    width: 10,
-                    height: 10,
-                    border: '2px solid #fff',
-                    left: position === Position.Left ? -7 : undefined,
-                    right: position === Position.Right ? -7 : undefined,
-                    top: position === Position.Top ? -7 : undefined,
-                    bottom: position === Position.Bottom ? -7 : undefined,
-                  }}
-                />
-              )}
-            </div>
-          );
-        })}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
