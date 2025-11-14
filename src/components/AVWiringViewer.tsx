@@ -23,7 +23,7 @@ function getEdgeCategoryColor(category: string) {
   return edgeCategoryColors[category as keyof typeof edgeCategoryColors] || edgeCategoryColors.Default;
 }
 
-function mapEdgesToReactFlow(elkEdges: any, originalEdges: any) {
+function mapEdgesToReactFlow(elkEdges: any, originalEdges: any, simplifiedMode: boolean = false) {
   return elkEdges.map((elkEdge: any) => {
     const original = originalEdges.find((e: any) => e.id === elkEdge.id);
     const edgeColor = getEdgeCategoryColor(original?.category || '');
@@ -39,9 +39,9 @@ function mapEdgesToReactFlow(elkEdges: any, originalEdges: any) {
         strokeWidth: 2.5,
       },
       type: 'smoothstep',
-      // When edges specify port keys, attach to specific handles so edges snap to them
-      sourceHandle: original?.sourcePortKey || undefined,
-      targetHandle: original?.targetPortKey || undefined,
+      // In simplified mode, don't use port handles - edges connect to node centers
+      sourceHandle: simplifiedMode ? undefined : (original?.sourcePortKey || undefined),
+      targetHandle: simplifiedMode ? undefined : (original?.targetPortKey || undefined),
     };
   });
 }
@@ -90,7 +90,7 @@ function flattenElkGroups(elkNode: any, graphData: any, _parent: any = null) {
   return nodes;
 }
 
-function AVWiringViewer({ graphData }: { graphData: any }) {
+function AVWiringViewer({ graphData, simplifiedMode = false }: { graphData: any; simplifiedMode?: boolean }) {
   const [nodes, setNodes, onNodesChange] = useNodesState([] as any[]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const { fitView } = useReactFlow();
@@ -119,13 +119,19 @@ function AVWiringViewer({ graphData }: { graphData: any }) {
       return;
     }
 
-    layoutGraph(graphData, direction).then(layouted => {
+    layoutGraph(graphData, direction, simplifiedMode).then(layouted => {
       let rfNodes: any[] = [];
       (layouted.children || []).forEach((root: any) => {
         rfNodes.push(...flattenElkGroups(root, graphData, null));
       });
       
-      const rfEdges = mapEdgesToReactFlow(layouted.edges || [], graphData.edges || []);
+      // Add simplifiedMode to node data for rendering
+      rfNodes = rfNodes.map((n: any) => ({
+        ...n,
+        data: { ...n.data, simplifiedMode }
+      }));
+      
+      const rfEdges = mapEdgesToReactFlow(layouted.edges || [], graphData.edges || [], simplifiedMode);
       
       // Store full graph data
       setFullGraphData(graphData);
@@ -146,7 +152,7 @@ function AVWiringViewer({ graphData }: { graphData: any }) {
       setEdges(rfEdges);
       setTimeout(() => fitView({ duration: 800, padding: 0.11 }), 200);
     });
-  }, [graphData, direction]);
+  }, [graphData, direction, simplifiedMode]);
 
   // Handle node click for focus mode
   const handleNodeClick = async (_event: any, node: any) => {
@@ -204,15 +210,16 @@ function AVWiringViewer({ graphData }: { graphData: any }) {
     };
 
     try {
-      const layouted = await layoutGraph(filteredGraphData, direction);
+      const layouted = await layoutGraph(filteredGraphData, direction, simplifiedMode);
       let rfNodes: any[] = [];
       (layouted.children || []).forEach((root: any) => {
         rfNodes.push(...flattenElkGroups(root, filteredGraphData, null));
       });
 
-      // Highlight focused node
+      // Highlight focused node and add simplifiedMode to data
       rfNodes = rfNodes.map((n: any) => ({
         ...n,
+        data: { ...n.data, simplifiedMode },
         selected: n.id === node.id,
         style: {
           ...n.style,
@@ -223,7 +230,7 @@ function AVWiringViewer({ graphData }: { graphData: any }) {
         },
       }));
 
-      const rfEdges = mapEdgesToReactFlow(layouted.edges || [], filteredGraphData.edges || []);
+      const rfEdges = mapEdgesToReactFlow(layouted.edges || [], filteredGraphData.edges || [], simplifiedMode);
 
       setNodes(rfNodes);
       setEdges(rfEdges);
@@ -278,7 +285,7 @@ function AVWiringViewer({ graphData }: { graphData: any }) {
     };
 
     try {
-      const layouted = await layoutGraph(filteredGraphData, direction);
+      const layouted = await layoutGraph(filteredGraphData, direction, simplifiedMode);
       let rfNodes: any[] = [];
       (layouted.children || []).forEach((root: any) => {
         rfNodes.push(...flattenElkGroups(root, filteredGraphData, null));
@@ -286,6 +293,7 @@ function AVWiringViewer({ graphData }: { graphData: any }) {
 
       rfNodes = rfNodes.map((n: any) => ({
         ...n,
+        data: { ...n.data, simplifiedMode },
         selected: n.id === focusMode.focusedNodeId,
         style: {
           ...n.style,
@@ -296,7 +304,7 @@ function AVWiringViewer({ graphData }: { graphData: any }) {
         },
       }));
 
-      const rfEdges = mapEdgesToReactFlow(layouted.edges || [], filteredGraphData.edges || []);
+      const rfEdges = mapEdgesToReactFlow(layouted.edges || [], filteredGraphData.edges || [], simplifiedMode);
 
       setNodes(rfNodes);
       setEdges(rfEdges);
@@ -371,7 +379,6 @@ function AVWiringViewer({ graphData }: { graphData: any }) {
           onEdgesChange={onEdgesChange}
           onNodeClick={handleNodeClick}
           nodeTypes={nodeTypes}
-          edgeTypes={edgeTypes}
           fitView
           minZoom={0.1}
           maxZoom={2.5}

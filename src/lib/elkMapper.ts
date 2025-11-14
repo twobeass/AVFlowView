@@ -18,9 +18,9 @@ function buildAreaTree(areas: any) {
   return Object.values(idMap).filter((a: any) => !(a as any).parentId);
 }
 
-function injectNodesIntoAreas(area: any, nodes: any, isHorizontal: any) {
-  const childAreas = area.children.map((child: any) => injectNodesIntoAreas(child, nodes, isHorizontal));
-  const nodeChildren = nodes.filter((n: any) => n.areaId === area.id).map((n: any) => createElkNode(n, isHorizontal));
+function injectNodesIntoAreas(area: any, nodes: any, isHorizontal: any, simplifiedMode: any = false) {
+  const childAreas = area.children.map((child: any) => injectNodesIntoAreas(child, nodes, isHorizontal, simplifiedMode));
+  const nodeChildren = nodes.filter((n: any) => n.areaId === area.id).map((n: any) => createElkNode(n, isHorizontal, simplifiedMode));
   const allChildren = [...childAreas, ...nodeChildren];
   const areaObj = {
     id: area.id,
@@ -43,34 +43,52 @@ function injectNodesIntoAreas(area: any, nodes: any, isHorizontal: any) {
   return areaObj;
 }
 
-export async function layoutGraph(graphData: any, direction = 'LR'): Promise<any> {
+export async function layoutGraph(graphData: any, direction = 'LR', simplifiedMode = false): Promise<any> {
   const isHorizontal = direction === 'LR';
   const areas = Array.isArray(graphData.areas) ? graphData.areas : [];
   const nodes = Array.isArray(graphData.nodes) ? graphData.nodes : [];
   const edges = Array.isArray(graphData.edges) ? graphData.edges : [];
   
-  const areaRoots = buildAreaTree(areas).map(rootArea => injectNodesIntoAreas(rootArea, nodes, isHorizontal));
+  const areaRoots = buildAreaTree(areas).map(rootArea => injectNodesIntoAreas(rootArea, nodes, isHorizontal, simplifiedMode));
   const standaloneNodes = nodes
     .filter((n: any) => !n.areaId)
-    .map((n: any) => createElkNode(n, isHorizontal));
+    .map((n: any) => createElkNode(n, isHorizontal, simplifiedMode));
+
+  // Optimized spacing for simplified mode
+  const layoutOptions: any = simplifiedMode ? {
+    'elk.algorithm': 'layered',
+    'elk.direction': isHorizontal ? 'RIGHT' : 'DOWN',
+    'elk.spacing.nodeNode': '60',
+    'elk.layered.spacing.nodeNodeBetweenLayers': '100',
+    'elk.layered.spacing.edgeNodeBetweenLayers': '40',
+    'elk.layered.spacing.edgeEdgeBetweenLayers': '30',
+    'elk.hierarchyHandling': 'INCLUDE_CHILDREN',
+    'elk.padding': '[top=30,left=30,bottom=30,right=30]',
+    'elk.layered.nodePlacement.strategy': 'SIMPLE',
+    'elk.layered.nodePlacement.bk.fixedAlignment': 'BALANCED',
+    'elk.separateConnectedComponents': 'true',
+    'elk.spacing.componentComponent': '100',
+    'elk.layered.considerModelOrder.strategy': 'NONE',
+    'elk.layered.crossingMinimization.strategy': 'LAYER_SWEEP'
+  } : {
+    'elk.algorithm': 'layered',
+    'elk.direction': isHorizontal ? 'RIGHT' : 'DOWN',
+    'elk.spacing.nodeNode': '100',
+    'elk.layered.spacing.nodeNodeBetweenLayers': '150',
+    'elk.layered.spacing.edgeNodeBetweenLayers': '50',
+    'elk.layered.spacing.edgeEdgeBetweenLayers': '50',
+    'elk.hierarchyHandling': 'INCLUDE_CHILDREN',
+    'elk.padding': '[top=30,left=30,bottom=30,right=30]',
+    'elk.layered.nodePlacement.strategy': 'NETWORK_SIMPLEX',
+    'elk.layered.nodePlacement.bk.fixedAlignment': 'BALANCED',
+    'elk.separateConnectedComponents': 'true',
+    'elk.spacing.componentComponent': '150',
+    'elk.layered.considerModelOrder.strategy': 'NONE'
+  };
 
   const elkGraph = {
     id: 'root',
-    layoutOptions: {
-      'elk.algorithm': 'layered',
-      'elk.direction': isHorizontal ? 'RIGHT' : 'DOWN',
-      'elk.spacing.nodeNode': '100',
-      'elk.layered.spacing.nodeNodeBetweenLayers': '150',
-      'elk.layered.spacing.edgeNodeBetweenLayers': '50',
-      'elk.layered.spacing.edgeEdgeBetweenLayers': '50',
-      'elk.hierarchyHandling': 'INCLUDE_CHILDREN',
-      'elk.padding': '[top=30,left=30,bottom=30,right=30]',
-      'elk.layered.nodePlacement.strategy': 'NETWORK_SIMPLEX',
-      'elk.layered.nodePlacement.bk.fixedAlignment': 'BALANCED',
-      'elk.separateConnectedComponents': 'true',
-      'elk.spacing.componentComponent': '150',
-      'elk.layered.considerModelOrder.strategy': 'NONE'
-    },
+    layoutOptions,
     children: [
       ...areaRoots,
       ...standaloneNodes
@@ -82,7 +100,21 @@ export async function layoutGraph(graphData: any, direction = 'LR'): Promise<any
   return elkLayout;
 }
 
-function createElkNode(node: any, isHorizontal: any) {
+function createElkNode(node: any, isHorizontal: any, simplifiedMode: any = false) {
+  // Simplified mode: uniform size, no ports
+  if (simplifiedMode) {
+    return {
+      id: node.id,
+      label: node.label,
+      width: 200,
+      height: 80,
+      targetPosition: isHorizontal ? 'left' : 'top',
+      sourcePosition: isHorizontal ? 'right' : 'bottom',
+      ports: [] // No ports in simplified mode
+    };
+  }
+  
+  // Detailed mode: variable size based on ports
   const portCount = Object.keys(node.ports || {}).length;
   const nodeHeight = BASE_NODE_HEIGHT + (portCount * PORT_HEIGHT_SPACING);
   

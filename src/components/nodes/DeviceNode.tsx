@@ -23,6 +23,58 @@ export default function DeviceNode({ id: _id, data }: any) {
   }
 
   const categoryStyles = getCategoryStyles(data.category);
+  
+  // Simplified mode: show only label with category color
+  if (data.simplifiedMode) {
+    return (
+      <div
+        style={{
+          background: categoryStyles.background,
+          border: `2px solid ${categoryStyles.border}`,
+          borderRadius: 8,
+          width: 200,
+          height: 80,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 12,
+          boxSizing: 'border-box',
+          fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif",
+          boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+          position: 'relative',
+        }}
+      >
+        {/* Invisible handles for edge connections */}
+        <Handle
+          type="target"
+          position={Position.Left}
+          style={{ opacity: 0 }}
+        />
+        <Handle
+          type="source"
+          position={Position.Right}
+          style={{ opacity: 0 }}
+        />
+        
+        <div style={{ 
+          fontWeight: 600, 
+          fontSize: 14,
+          color: textColors.primary,
+          textAlign: 'center',
+          lineHeight: 1.3,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          display: '-webkit-box',
+          WebkitLineClamp: 3,
+          WebkitBoxOrient: 'vertical',
+        }}>
+          {data.label || data.model}
+        </div>
+      </div>
+    );
+  }
+  
+  // Detailed mode: show full node with ports
   const ports = Object.entries(data.ports);
 
   // Separate ports by alignment

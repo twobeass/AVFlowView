@@ -26,12 +26,22 @@ export default function GraphDataManager() {
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [pasteText, setPasteText] = useState('');
   const [saveNameInput, setSaveNameInput] = useState('');
+  const [simplifiedMode, setSimplifiedMode] = useState(() => {
+    // Load simplified mode preference from localStorage
+    const saved = localStorage.getItem('avflowview-simplified-mode');
+    return saved ? JSON.parse(saved) : false;
+  });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load initial graph on mount
   useEffect(() => {
     loadInitialGraph();
   }, []);
+
+  // Save simplified mode preference to localStorage
+  useEffect(() => {
+    localStorage.setItem('avflowview-simplified-mode', JSON.stringify(simplifiedMode));
+  }, [simplifiedMode]);
 
   // Refresh saved graphs list whenever needed
   const refreshSavedGraphs = () => {
@@ -313,6 +323,26 @@ export default function GraphDataManager() {
           ⬇️ Export
         </button>
 
+        <div style={{ width: '1px', height: '24px', backgroundColor: '#ddd' }} />
+
+        {/* Simplified View Toggle */}
+        <button
+          onClick={() => setSimplifiedMode(!simplifiedMode)}
+          disabled={!graphData}
+          style={{
+            padding: '8px 16px',
+            backgroundColor: graphData ? (simplifiedMode ? '#9C27B0' : '#673AB7') : '#ccc',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: graphData ? 'pointer' : 'not-allowed',
+            fontSize: '14px',
+            fontWeight: '500',
+          }}
+        >
+          🔀 {simplifiedMode ? 'Detailed View' : 'Simplified View'}
+        </button>
+
         {/* Current Graph Name Display */}
         <div style={{
           marginLeft: 'auto',
@@ -358,7 +388,7 @@ export default function GraphDataManager() {
       {/* Main Graph Viewer */}
       <div style={{ flex: 1, overflow: 'hidden' }}>
         {graphData ? (
-          <AVWiringViewer graphData={graphData} />
+          <AVWiringViewer graphData={graphData} simplifiedMode={simplifiedMode} />
         ) : (
           <div style={{
             display: 'flex',
