@@ -7,7 +7,7 @@ import GroupNode from './nodes/GroupNode';
 import FocusModePanel from './FocusModePanel';
 
 import { edgeCategoryColors } from '../config/colors';
-import { calculateNeighborhood, filterGraphByNeighborhood, isDeviceNode, getNodeLabel } from '../lib/focusMode';
+import { calculateNeighborhood, filterGraphByNeighborhood } from '../lib/focusMode';
 
 const nodeTypes = {
   deviceNode: DeviceNode,
@@ -43,7 +43,7 @@ function mapEdgesToReactFlow(elkEdges: any, originalEdges: any) {
   });
 }
 
-function flattenElkGroups(elkNode: any, graphData: any, _parent: any = null, portSidesMap: any = {}) {
+function flattenElkGroups(elkNode: any, graphData: any, _parent: any = null) {
   // Recursively flatten ELK to React Flow nodes, group devices by parentId
   const nodes = [];
   const isArea = graphData.areas.some((a: any) => a.id === elkNode.id);
@@ -53,40 +53,27 @@ function flattenElkGroups(elkNode: any, graphData: any, _parent: any = null, por
       type: 'groupNode',
       parentId: elkNode.parent || undefined,
       position: { x: elkNode.x, y: elkNode.y },
-      extent: elkNode.parent ? 'parent' : undefined,
+      extent: undefined, // Remove extent constraint so children can be dragged freely
       draggable: !elkNode.parent, // only allow top-level areas to move
       style: {
-        width: elkNode.width || 140,
-        height: elkNode.height || 70,
+        width: elkNode.width || 400,
+        height: elkNode.height || 300,
+        minWidth: 300,
+        minHeight: 200,
       },
       data: { label: elkNode.label || elkNode.id },
       selectable: true,
-      expandParent: false,
+      expandParent: true, // Enable auto-expansion when children are dragged
     });
   } else if(graphData.nodes.some((n: any) => n.id === elkNode.id)) {
     // normal device
     const d = graphData.nodes.find((n: any) => n.id === elkNode.id);
-    // Clone node data and merge computed port sides from portSidesMap
-    const clonedPorts: any = {};
-    if (d && d.ports) {
-      Object.entries(d.ports).forEach(([k, p]) => {
-        clonedPorts[k] = { ...(p as any) };
-      });
-      // Read resolved port sides from the map
-      const nodeSides = portSidesMap[elkNode.id] || {};
-      Object.entries(nodeSides).forEach(([portKey, side]) => {
-        if (clonedPorts[portKey]) {
-          clonedPorts[portKey].computedSide = side;
-        }
-      });
-    }
-    const dataWithPorts = { ...(d || {}), ports: clonedPorts };
     nodes.push({
       id: elkNode.id,
       type: 'deviceNode',
       parentId: elkNode.parent || undefined,
       position: { x: elkNode.x, y: elkNode.y },
-      data: dataWithPorts,
+      data: d,
       zIndex: 2,
       extent: elkNode.parent ? 'parent' : undefined,
     });
@@ -94,7 +81,7 @@ function flattenElkGroups(elkNode: any, graphData: any, _parent: any = null, por
   if (elkNode.children) {
     elkNode.children.forEach((child: any) => {
       child.parent = elkNode.id;
-      nodes.push(...flattenElkGroups(child, graphData, elkNode.id, portSidesMap));
+      nodes.push(...flattenElkGroups(child, graphData, elkNode.id));
     });
   }
   return nodes;
@@ -130,10 +117,9 @@ function AVWiringViewer({ graphData }: { graphData: any }) {
     }
 
     layoutGraph(graphData, direction).then(layouted => {
-      const portSidesMap = (layouted as any).__portSides || {};
       let rfNodes: any[] = [];
       (layouted.children || []).forEach((root: any) => {
-        rfNodes.push(...flattenElkGroups(root, graphData, null, portSidesMap));
+        rfNodes.push(...flattenElkGroups(root, graphData, null));
       });
       
       const rfEdges = mapEdgesToReactFlow(layouted.edges || [], graphData.edges || []);
@@ -160,7 +146,7 @@ function AVWiringViewer({ graphData }: { graphData: any }) {
   }, [graphData, direction]);
 
   // Handle node click for focus mode
-  const handleNodeClick = async (event: any, node: any) => {
+  const handleNodeClick = async (_event: any, node: any) => {
     // Only allow focusing on device nodes
     if (node.type !== 'deviceNode') {
       return;
@@ -216,10 +202,9 @@ function AVWiringViewer({ graphData }: { graphData: any }) {
 
     try {
       const layouted = await layoutGraph(filteredGraphData, direction);
-      const portSidesMap = (layouted as any).__portSides || {};
       let rfNodes: any[] = [];
       (layouted.children || []).forEach((root: any) => {
-        rfNodes.push(...flattenElkGroups(root, filteredGraphData, null, portSidesMap));
+        rfNodes.push(...flattenElkGroups(root, filteredGraphData, null));
       });
 
       // Highlight focused node
@@ -291,10 +276,9 @@ function AVWiringViewer({ graphData }: { graphData: any }) {
 
     try {
       const layouted = await layoutGraph(filteredGraphData, direction);
-      const portSidesMap = (layouted as any).__portSides || {};
       let rfNodes: any[] = [];
       (layouted.children || []).forEach((root: any) => {
-        rfNodes.push(...flattenElkGroups(root, filteredGraphData, null, portSidesMap));
+        rfNodes.push(...flattenElkGroups(root, filteredGraphData, null));
       });
 
       rfNodes = rfNodes.map((n: any) => ({

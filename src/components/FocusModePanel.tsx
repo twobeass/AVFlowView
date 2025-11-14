@@ -1,5 +1,3 @@
-import React from 'react';
-
 interface FocusModePanelProps {
   enabled: boolean;
   focusedNodeId: string | null;
@@ -19,7 +17,7 @@ interface FocusModePanelProps {
 
 export default function FocusModePanel({
   enabled,
-  focusedNodeId,
+  focusedNodeId: _focusedNodeId,
   focusedNodeLabel,
   depthOutgoing,
   depthIncoming,
