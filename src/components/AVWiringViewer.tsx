@@ -4,6 +4,7 @@ import { layoutGraph } from '../lib/elkMapper';
 import { validateGraph } from '../lib/validator';
 import DeviceNode from './nodes/DeviceNode';
 import GroupNode from './nodes/GroupNode';
+import SmartEdge from './edges/SmartEdge';
 import FocusModePanel from './FocusModePanel';
 
 import { edgeCategoryColors } from '../config/colors';
@@ -13,7 +14,9 @@ const nodeTypes = {
   deviceNode: DeviceNode,
   groupNode: GroupNode,
 };
-const edgeTypes = {};
+const edgeTypes = {
+  smart: SmartEdge,
+};
 
 // Category-based edge colors
 function getEdgeCategoryColor(category: string) {
@@ -35,7 +38,7 @@ function mapEdgesToReactFlow(elkEdges: any, originalEdges: any) {
         stroke: edgeColor, 
         strokeWidth: 2.5,
       },
-      type: 'smoothstep',
+      type: 'smoothstep', // Use smoothstep for nice curved routing
       // When edges specify port keys, attach to specific handles so edges snap to them
       sourceHandle: original?.sourcePortKey || undefined,
       targetHandle: original?.targetPortKey || undefined

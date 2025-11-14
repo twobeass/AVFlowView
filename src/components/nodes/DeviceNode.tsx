@@ -89,6 +89,11 @@ export default function DeviceNode({ id: _id, data }: any) {
                       background: handleColor,
                       width: 10,
                       height: 10,
+                      border: '2px solid #fff',
+                      left: position === Position.Left ? -7 : undefined,
+                      right: position === Position.Right ? -7 : undefined,
+                      top: position === Position.Top ? -7 : undefined,
+                      bottom: position === Position.Bottom ? -7 : undefined,
                     }}
                   />
                   <Handle
@@ -99,6 +104,11 @@ export default function DeviceNode({ id: _id, data }: any) {
                       background: handleColor,
                       width: 10,
                       height: 10,
+                      border: '2px solid #fff',
+                      left: position === Position.Left ? -7 : undefined,
+                      right: position === Position.Right ? -7 : undefined,
+                      top: position === Position.Top ? -7 : undefined,
+                      bottom: position === Position.Bottom ? -7 : undefined,
                     }}
                   />
                 </>
@@ -111,6 +121,11 @@ export default function DeviceNode({ id: _id, data }: any) {
                     background: handleColor,
                     width: 10,
                     height: 10,
+                    border: '2px solid #fff',
+                    left: position === Position.Left ? -7 : undefined,
+                    right: position === Position.Right ? -7 : undefined,
+                    top: position === Position.Top ? -7 : undefined,
+                    bottom: position === Position.Bottom ? -7 : undefined,
                   }}
                 />
               )}

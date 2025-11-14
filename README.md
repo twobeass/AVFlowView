@@ -5,6 +5,7 @@
 ## Features
 
 - 🔄 **Auto-Layout**: Hierarchical graph layout using ELK.js with Sugiyama-based layering
+- 🧠 **Smart Edge Routing**: A* pathfinding algorithm for collision-free edges with rounded corners
 - 🎨 **Category Coloring**: Visual distinction for device types and cable categories
 - 🔍 **Focus/Context**: Interactive highlighting with configurable depth k
 - 📦 **Areas**: Logical grouping (rooms, racks, zones) as compound nodes
@@ -116,8 +117,18 @@ For detailed information about the project:
 - **[`SESSION_SUMMARY.md`](SESSION_SUMMARY.md)** - Session accomplishments and technical highlights
 - **[`BIDIRECTIONAL_PORTS_REFERENCE.md`](BIDIRECTIONAL_PORTS_REFERENCE.md)** - Technical deep-dive on bidirectional port placement
 
-## Recent Accomplishments (2025-11-13)
+## Recent Accomplishments
 
+### 2025-11-14: Smart Edge Routing
+✅ **A* Pathfinding Algorithm**: Intelligent edge routing that avoids node collisions  
+✅ **Rounded Corners**: Professional-looking edges with smooth transitions  
+✅ **Manhattan Routing**: Horizontal and vertical segments with right-angle turns  
+✅ **Collision Avoidance**: Edges automatically route around nodes  
+✅ **Modular Architecture**: Extensible system ready for additional layout algorithms (Dagre, D3)  
+✅ **Comprehensive Documentation**: Full technical documentation in `SMART_EDGE_ROUTING.md`  
+✅ **Graceful Fallbacks**: Handles edge cases with simple routing when needed
+
+### 2025-11-13: Styling & Port Management
 ✅ **Comprehensive Styling System**: Professional UI with category-based colors and centralized configuration  
 ✅ **Centralized Color Configuration**: All colors managed in `src/config/colors.ts` for easy customization  
 ✅ **Side-by-Side Port Layout**: Inputs on left, outputs on right with CSS Grid layout  
