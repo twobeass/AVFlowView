@@ -1,3 +1,35 @@
+/**
+ * ELK Layout Mapper for AVFlowView
+ * 
+ * This module handles the graph layout using Eclipse Layout Kernel (ELK.js).
+ * It converts the AVFlowView graph structure into ELK format, performs layout,
+ * and post-processes the results for optimal edge routing.
+ * 
+ * KEY FEATURES:
+ * - ORTHOGONAL edge routing for clean horizontal/vertical paths
+ * - Priority-based node ordering to minimize edge crossings
+ * - Dynamic bidirectional port side resolution based on neighbor positions
+ * - Support for hierarchical areas (nested groups)
+ * 
+ * LAYOUT STRATEGY:
+ * 1. Convert graph to ELK format with nodes, ports, edges, and areas
+ * 2. Compute node priorities based on port connection indices
+ * 3. Run ELK layout with ORTHOGONAL routing
+ * 4. Post-process to resolve bidirectional port sides
+ * 5. Extract routing data (bendPoints) for edge rendering
+ * 
+ * KNOWN ISSUES:
+ * - Edge crossings still occur in complex graphs despite optimization
+ * - Node placement algorithm could be improved to reduce crossings at source
+ * - Some edges may route through nodes in very dense graphs
+ * 
+ * FUTURE IMPROVEMENTS:
+ * - Experiment with different ELK algorithms (e.g., FORCE, STRESS)
+ * - Implement custom node placement to better respect port connections
+ * - Add edge bundling preprocessing to group parallel edges
+ * - Consider multi-pass layout with crossing detection/correction
+ */
+
 import ELK from 'elkjs/lib/elk.bundled.js';
 
 const NODE_WIDTH = 440;
@@ -62,41 +94,45 @@ export async function layoutGraph(graphData: any, direction = 'LR'): Promise<any
     layoutOptions: {
       'elk.algorithm': 'layered',
       'elk.direction': isHorizontal ? 'RIGHT' : 'DOWN',
-      'elk.spacing.nodeNode': '100',
-      'elk.layered.spacing.nodeNodeBetweenLayers': '150',
-      'elk.layered.spacing.edgeNodeBetweenLayers': '50',
-      'elk.layered.spacing.edgeEdgeBetweenLayers': '30',
+      'elk.spacing.nodeNode': '140',
+      'elk.layered.spacing.nodeNodeBetweenLayers': '200',
+      'elk.layered.spacing.edgeNodeBetweenLayers': '120',
+      'elk.layered.spacing.edgeEdgeBetweenLayers': '60',
       'elk.hierarchyHandling': 'INCLUDE_CHILDREN',
-      'elk.padding': '[top=30,left=30,bottom=30,right=30]',
+      'elk.padding': '[top=40,left=40,bottom=40,right=40]',
       // Edge crossing minimization - enhanced
       'elk.layered.crossingMinimization.strategy': 'LAYER_SWEEP',
       'elk.layered.crossingMinimization.greedySwitch.type': 'TWO_SIDED',
       'elk.layered.crossingMinimization.semiInteractive': 'true',
       'elk.layered.considerModelOrder.strategy': 'NODES_AND_EDGES',
       'elk.layered.considerModelOrder.portModelOrder': 'true',
-      'elk.layered.thoroughness': '15',
+      'elk.layered.thoroughness': '20',
       // Node placement and ordering
       'elk.layered.nodePlacement.strategy': 'NETWORK_SIMPLEX',
       'elk.layered.nodePlacement.bk.fixedAlignment': 'BALANCED',
       'elk.layered.cycleBreaking.strategy': 'GREEDY',
       'elk.layered.layering.strategy': 'NETWORK_SIMPLEX',
-      // Edge routing to avoid crossings and nodes
+      'elk.layered.nodePlacement.favorStraightEdges': 'false',
+      // Edge routing - ORTHOGONAL for better obstacle avoidance
       'elk.edgeRouting': 'ORTHOGONAL',
       'elk.layered.unnecessaryBendpoints': 'false',
-      'elk.layered.nodePlacement.linearSegments.deflectionDampening': '0.3',
       'elk.layered.wrapping.strategy': 'OFF',
       // Merge and simplify edges
-      'elk.layered.mergeEdges': 'true',
-      'elk.layered.mergeHierarchyEdges': 'true',
-      // Port constraints
+      'elk.layered.mergeEdges': 'false',
+      'elk.layered.mergeHierarchyEdges': 'false',
+      // Port constraints and spacing
       'elk.portConstraints': 'FIXED_SIDE',
       'elk.portAlignment.default': 'CENTER',
+      'elk.spacing.edgeNode': '90',
+      // Additional spacing to prevent edge overlap
+      'elk.layered.spacing.edgeLabelNodeBetweenLayers': '50',
+      'elk.spacing.individual': 'true',
     },
     children: [
       ...areaRoots,
       ...standaloneNodes
     ],
-    edges: mapEdgesToElk(edges)
+    edges: mapEdgesToElk(edges, nodes)
   };
 
   // ---
@@ -192,6 +228,10 @@ export async function layoutGraph(graphData: any, direction = 'LR'): Promise<any
   
   // Attach port sides map to the layout for later retrieval
   (elkLayout as any).__portSides = portSidesMap;
+  
+  // Extract ELK routing data for edges
+  console.log('ELK Layout edges:', elkLayout.edges);
+  
   // ---
   return elkLayout;
 }
@@ -287,15 +327,32 @@ function createElkNode(node: any, isHorizontal: any, _allEdges: any, nodePriorit
   };
 }
 
-function mapEdgesToElk(edges: any) {
-  return Array.isArray(edges) ? edges.map(e => ({
-    id: e.id,
-    sources: [e.source],
-    targets: [e.target],
-    properties: {
-      sourcePort: e.sourcePortKey ? `${e.source}.${e.sourcePortKey}` : undefined,
-      targetPort: e.targetPortKey ? `${e.target}.${e.targetPortKey}` : undefined,
-      binding: e.binding || undefined
-    }
-  })) : [];
+function mapEdgesToElk(edges: any, nodes: any) {
+  return Array.isArray(edges) ? edges.map(e => {
+    // Check if edge direction needs to be corrected
+    const sourceNode = nodes.find((n: any) => n.id === e.source);
+    const targetNode = nodes.find((n: any) => n.id === e.target);
+    const sourcePort = sourceNode?.ports?.[e.sourcePortKey];
+    const targetPort = targetNode?.ports?.[e.targetPortKey];
+    
+    // Detect inverted edges (In->Out instead of Out->In)
+    const isInverted = sourcePort?.alignment === 'In' && targetPort?.alignment === 'Out';
+    
+    // Use corrected direction
+    const actualSource = isInverted ? e.target : e.source;
+    const actualTarget = isInverted ? e.source : e.target;
+    const actualSourcePortKey = isInverted ? e.targetPortKey : e.sourcePortKey;
+    const actualTargetPortKey = isInverted ? e.sourcePortKey : e.targetPortKey;
+    
+    return {
+      id: e.id,
+      sources: [actualSource],
+      targets: [actualTarget],
+      properties: {
+        sourcePort: actualSourcePortKey ? `${actualSource}.${actualSourcePortKey}` : undefined,
+        targetPort: actualTargetPortKey ? `${actualTarget}.${actualTargetPortKey}` : undefined,
+        binding: e.binding || undefined
+      }
+    };
+  }) : [];
 }
