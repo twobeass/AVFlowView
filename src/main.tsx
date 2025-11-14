@@ -2,12 +2,11 @@
 import '@xyflow/react/dist/style.css';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import AVWiringViewer from './components/AVWiringViewer';
-import graphData from './data/sampleGraph.json';
+import GraphDataManager from './components/GraphDataManager';
 
 const root = ReactDOM.createRoot(document.getElementById('root')!);
 root.render(
   <React.StrictMode>
-    <AVWiringViewer graphData={graphData} />
+    <GraphDataManager />
   </React.StrictMode>
 );
