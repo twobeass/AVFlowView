@@ -1,137 +1,138 @@
-# AVFlowView-D3: Autonomous Coding Agent Guide
-
-This specification describes the complete roadmap and requirements for an autonomous coding agent to reimplement AVFlowView as a D3.js-based schematic visualizer, leveraging the d3-hwschematic library and ELK.js for advanced graph layout, edge separation, and automated rendering. All existing AVFlowView features must be fully migrated and the codebase restructured for maximum maintainability, extensibility, and performance. All config-driven, interactive, and schema aspects require explicit coverage.
-
-## Objectives
-- Migrate the existing AVFlowView React Flow implementation to D3.js and d3-hwschematic.
-- Preserve and enhance core functionalities: auto-layout, smart orthogonal edge routing, bidirectional port placement, category/area coloring, focus/context management, JSON validation, interactive controls, and extensible configuration.
-- Deliver full documentation, typed interfaces, and modular architecture.
-
-## Project Structure
-```
-avflow-d3/
-├── src/
-│   ├── adapters/         # AV JSON → ELK JSON conversion
-│   ├── core/             # Schematic renderer, layout, focus logic
-│   ├── config/           # Centralized color, layout, style config
-│   ├── data/             # Sample graphs, testcases
-│   ├── features/         # Focus/context, selection, export
-│   ├── renderers/        # Custom node, edge, area renderer
-│   ├── schemas/          # JSON schema definition
-│   └── types/            # TS interfaces
-├── README.md
-├── avflow-d3.md          # **This agent guide**
-└── package.json
-```
-
-## 1. Data Model & JSON Schema
-- Port and adapt current AV wiring graph JSON schema (`src/schemas/av-wiring-graph.schema.json`).
-- Describe nodes (devices), ports, areas, edges, and layout configs; draw from current implementation.
-- The schema must support:
-  - Categories, status, manufacturer, labels, area grouping
-  - Port types, labels, alignments, and computed positions
-  - Edge attributes: cable types, port bindings
-  - Areas/zones/racks
-  - Layout parameters (direction, port binding mode, area-first layout)
-- Validate every loaded graph against the schema using Ajv. Provide type definitions for safer coding.
-
-## 2. Centralized Configs
-- Color configuration in `src/config/colors.ts`:
-  - Define device, edge, area, and port colors per category (audio, video, control, network, power)
-  - Type-safe, single source of truth
-- Layout and styling configuration in `src/config/elkConfig.ts`:
-  - All ELK options for orthogonal routing, edge separation, node and edge spacing, crossing minimization, port constraints, etc.
-- Enable easy, runtime-configurable updates.
-
-## 3. AV JSON → ELK JSON Adapter
-- Write adapter in `src/adapters/avToElkAdapter.ts`:
-  - Convert AV graph JSON into ELK.js hierarchical structure with correct areas/groups, nodes, ports, and edges
-  - Attach all necessary hwMeta properties to nodes, ports, and edges for d3-hwschematic compatibility
-  - Handle area containment, grouping logic, collapsed (`_children`) states for larger graphs
-  - Index and reference ports/nodes consistently
-  - Provide thorough unit tests using graphs with edge, port, and area complexity
-
-## 4. Schematic Renderer Core
-- Build main entry point in `src/core/AVSchematicRenderer.ts`:
-  - Accept validated AV graph
-  - Call AV→ELK adapter
-  - Perform layout using ELK.js Layered + Orthogonal routing
-  - Pass result to d3-hwschematic for rendering
-  - Register custom node, edge, and area renderers
-  - Provide hooks for runtime config changes
-  - Update DOM/SVG in response to graph or config changes
-
-## 5. Node, Port, Edge Rendering Logic
-- Write classes for device nodes, area/group nodes, and edges in `src/renderers/`.
-- Device nodes:
-  - Side-by-side port layout (inputs left, outputs right, bidirectional dynamic)
-  - Category and status-colorized backgrounds
-  - Labels, manufacturer, model, status
-  - Expand/collapse controls for hierarchical structures
-- Ports:
-  - Precise positioning and alignment per computed ELK side
-  - Allow hover, selection, and tooltips
-- Edges:
-  - Use ELK-provided bend points for exact orthogonal paths
-  - Rounded corners, color per category, tooltips
-  - Fully support bidirectional and hyper-edges
-
-## 6. Focus/Context Features
-- Implement focus/context highlight logic in `src/features/focusMode.ts`:
-  - Select node and highlight k-depth subgraph (BFS traversal)
-  - Dim unrelated nodes and edges visually
-  - Allow configuration of focus depth and styles
-  - Support interaction via click, keyboard, and programmatic triggers
-
-## 7. Interactivity & Controls
-- Loader for AV JSON files (local and remote)
-- Zoom, pan, and fit-to-screen controls using d3-zoom
-- Node/port/edge selection with visual highlight and tooltip
-- Expand/collapse for hierarchical nodes and areas
-- Filter by category/status/area
-
-## 8. Export & Utility Functions
-- Enable export of the current view as PNG, SVG, PDF
-- Allow graph data export/import including current layout state
-
-## 9. Testing & Validation
-- Rigorous unit and integration tests for all converters, renderers, and focus logic
-- Visual regression tests for main feature and edge cases
-- Ensure robust validation of all loaded AV JSONs versus the schema
-- Provide test coverage summary
-
-## 10. Documentation & Extensibility
-- Document all modules, classes, and extensibility points in code and README
-- Ensure that `avflow-d3.md` describes:
-  - All architectural decisions
-  - The implementation pipeline from JSON load to SVG output
-  - Extensible renderer registration system
-  - Expected input/output for every module
-  - Error handling and logging guidelines
-- Provide a migration FAQ for code agents
-
-## Implementation Pipeline
-1. Validate AV wiring graph JSON
-2. Adapt graph to ELK JSON using AV→ELK adapter
-3. Layout graph with ELK (Layered + Orthogonal, with edge separation)
-4. Render with d3-hwschematic
-5. Apply custom node, edge, and area renderers via registration
-6. Load color/config from centralized config
-7. Attach focus/context handlers
-8. Enable interactivity (zoom, select, expand/collapse)
-9. Export/Import functions
-10. Document every step/code path
-
-## References
-- [d3-hwschematic Documentation](https://github.com/Nic30/d3-hwschematic)
-- [ELK.js Documentation](https://www.eclipse.org/elk/documentation.html)
-- [D3.js Documentation](https://github.com/d3/d3/wiki)
-- [Ajv JSON Schema Validator](https://ajv.js.org/)
+# AVFlowView-D3: Autonomous Agent Implementation Playbook (Expanded)
 
 ---
 
-**AWESOME AGENT CHALLENGE**
-> Implement this entire specification autonomously, maximizing code re-use, reliability, and extensibility. Keep all config logic, feature parity, and documentation on par or improved compared to the original AVFlowView. All architectural, type, and API choices must be peer-review ready and CI testable. Always adhere to TypeScript strictness and provide migration/implementation notes where relevant.
+**This is the authoritative master specification for re-implementing AVFlowView with D3.js, d3-hwschematic, and ELK.js.**
 
-**File: avflow-d3.md**
-This file serves as the canonical implementation guide and should be kept current throughout agent-driven development.
+All information required for functional parity and agent-driven migration are now consolidated here, including critical schema details, functional algorithms, precise technical implementation, migration guidelines, and references to supplementary docs. _Do not proceed if a section is flagged as incomplete or if validation requirements are not satisfied!_
+
+## Table of Contents
+1. **Data Model & Full JSON Schema**
+2. **Critical React Flow Implementation Details**
+3. **Architectural/Algorithmic Essentials**
+4. **D3.js/d3-hwschematic Requirements**
+5. **Configuration, Styling, and Color Logic**
+6. **Edge Routing & Port Placement Algorithms**
+7. **Area Grouping, Node Ordering & Layout Constraints**
+8. **Functional Specification Table**
+9. **Testing, Error Handling, and Acceptance Criteria**
+10. **Supplementary Documentation Index**
+
+---
+
+## 1. Data Model & Full JSON Schema
+- Embed or reference the authoritative AV wiring JSON schema verbatim.
+- Must specify: permissible ID patterns (e.g. ^[A-Za-z0-9._:-]+$), required/optional fields, data shape for nodes/edges/areas/ports/layout. 
+- Include extensibility for metadata. 
+- All data loaded MUST be schema-validated (Ajv or equivalent). Produce human-readable validation errors.
+
+(→ See `src/schemas/av-wiring-graph.schema.json`, section excerpt below...)
+```json
+{
+  "properties": {
+    "layout": { "type": "object", "properties": { "direction": {"enum": ["LR", "TB"]}, ... } },
+    "areas": { "type": "array", "items": { "id": { "pattern": "^[A-Za-z0-9._:-]+$" }, ... } },
+    "nodes": { "type": "array", "items": { "id": { "pattern": "^[A-Za-z0-9._:-]+$" }, ... } },
+    "edges": { "type": "array", "items": { "id": { "pattern": "^[A-Za-z0-9._:-]+$" }, ... } }
+  },
+  "required": ["nodes", "edges"]
+}
+```
+- Every node, edge, port, and area must have unique IDs matching the regex above.
+- All required/optional/metadata conventions are to be obeyed as in `AI_AGENT_INSTRUCTIONS.md`.
+
+## 2. Current Implementation: Key Features
+
+**a) Smart Edge Routing (A*)**: Existing system uses Manhattan routing with A* for collision avoidance. Candidate edges must not intersect node bounding boxes. Each edge's path (list of points) is computed globally.
+
+**b) Bidirectional Port Placement (4-phase pipeline)**: Handles mapping, computation, propagation, and precise rendering—see below for details and the `getPortSideDynamic()` code.
+
+**c) Centralized Color Config**: All category, status, and area color assignments are handled by a single config file (e.g., `src/config/colors.ts`).
+
+**d) Node/Port/Area Render Layout**: Inputs left, outputs right, bi/auto-detect, area groupings with padding and dimension as specified.
+
+**e) Focus Mode/K-Depth Selection**: Interactive highlighting of k-neighborhood around node selection, dimming all else.
+
+## 3. Core Algorithmic Excerpts
+
+**getPortSideDynamic (Pseudo-code):**
+```typescript
+function getPortSideDynamic(node, portKey, isSource) {
+  // For each edge on this port, find its direction
+  // Sum dx/dy, decide EAST/WEST or NORTH/SOUTH
+  // Use layout direction constraints (LR→E/W, TB→N/S)
+  // Only connected ports can resolve side; fallback to default
+}
+```
+**A* Routing (for Manhattan):** Embedded in React Flow's smart edge module; refactor for d3.js if manual routing is needed.
+
+**Color Map Example (from config):**
+```typescript
+export const CategoryColors = {
+  Audio:   { background: '#2ECC40', border: '#15A03B' },
+  Video:   { background: '#0074D9', border: '#005299' },
+  Network: { background: '#FFDC00', border: '#B39700' },
+  Control: { background: '#B10DC9', border: '#6D0A87' },
+  Power:   { background: '#FF4136', border: '#C60F1A' },
+  Default: { background: '#AAAAAA', border: '#888888' }
+};
+```
+
+Pages, padding, port offset, and layer spacing are explicitly:
+- Node width: 440px
+- Node padding: 30px sides, 50px above
+- Port-vertical spacing: 20px
+- Area padding: 50px top/30px sides
+- All positioning rules as in `IMPLEMENTATION_STATUS.md` and `STYLING_IMPLEMENTATION.md`.
+
+## 4. D3.js & d3-hwschematic Guidance
+- Use d3-hwschematic conventions: nodes as LNode, ports as LPort, edges as LEdge; include `hwMeta` for styling/config.
+- Register custom renderers for category status, area grouping, and port direction.
+- Load and parse sample graphs exhaustively as unit tests (taken from your test set).
+- Use layout and edge separation options for ELK that exactly match current production config (`elk.edgeRouting`, `elk.spacing.edgeEdge`, etc.).
+
+## 5. Functional Specification Table
+| Feature                 | React Flow             | D3.js/d3-hwschematic requirement        |
+|-------------------------|-----------------------|-----------------------------------------|
+| Auto-Layout (ELK)       | ✅ via ELK.js         | Use ELK.js, copy all config options     |
+| Orthogonal Edges        | via A*                | Use ELK's ortho routing, or replicate   |
+| Category Colors         | Central config file   | Copy config, support runtime changes    |
+| Side-by-side Ports      | CSS Grid, algorithmic | Dynamic d3 rendering, per computedSide  |
+| Bidirectional Ports     | Dynamic, full pipeline| Implement per port/edge orientation     |
+| Areas/Groups            | Group nodes, assign id| Use LNode containers, areaId, padding   |
+| Focus Mode              | k-depth traversal     | BFS traversal, highlight, fade others   |
+| Zoom/Pan                | React Flow UI         | Use d3-zoom, maintain performance       |
+| Schema Validation       | Ajv                   | Use Ajv or equivalent, block render if invalid |
+| Export/Import           | via JSON              | Should match               |
+
+## 6. Migration & Testing Requirements
+- Complete feature parity with pre-port AVFlowView.
+- Visual regression: supply screenshots/snapshots for major components and edge cases.
+- Every new/ported function, especially layout, transforms, edge/port/area rendering, must be unit tested.
+- Benchmark render time for 100, 500, 1000 node graphs. Render time must stay below agreed thresholds (see baseline in recent `IMPLEMENTATION_STATUS.md`).
+- Provide detailed error messages and validation feedback for all user. Must block rendering on schema or data errors.
+
+## 7. Supplementary Documentation Index
+- AI_AGENT_INSTRUCTIONS.md – Deep dive on feature, data flow, and core architecture
+- BIDIRECTIONAL_PORTS_REFERENCE.md – Port placement pipeline and side resolution details
+- IMPLEMENTATION_STATUS.md – What's implemented, config and styling particulars
+- SMART_EDGE_ROUTING.md – Pathfinding and collision avoidance strategies
+- STYLING_IMPLEMENTATION.md – Exact color details and layout conventions
+- SESSION_SUMMARY.md – AI+dev session technical findings
+- context.md – Project and use case context
+- All sample/test graphs – To be referenced directly for edge case coverage
+
+## 8. Agent Execution Protocol
+- Follow each section **in order**.
+- Reference code snippets/pseudocode as models for critical functions.
+- Cross-check your work against behavioral expectations in the Acceptance Criteria/Migration & Testing sections.
+- Never proceed past a task until strict validation (types, tests, schema, config, visual) passes.
+- Document all deviations from current implementation and state rationale clearly at the top of this file and in commit messages.
+
+---
+
+**Update note:** As of 2025-11-15, this file merges key implementation instructions from all current deep technical docs, code, workflow, and algorithmic sources. It supersedes all previous D3 migration guides for AVFlowView.
+
+---
+
+_Reference: for extended in-file embedded schema, code, and exact config examples, see appendices below (add as needed)._
