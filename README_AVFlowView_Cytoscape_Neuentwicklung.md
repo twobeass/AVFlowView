@@ -26,6 +26,43 @@ AVFlowView wird komplett neu entwickelt, um den Umgang mit großen und komplexen
 
 ---
 
+## JSON-Schema Übersicht
+
+**Beispielhafte Struktur für Knoten, Kanten und Ports:**
+
+```json
+{
+  "nodes": [
+    {
+      "id": "node1",
+      "label": "Node 1",
+      "position": {"x": 100, "y": 200},
+      "ports": [
+        { "id": "port1", "offset": {"x": 10, "y": 20} },
+        { "id": "port2", "offset": {"x": -10, "y": 20} }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge1",
+      "source": "node1",
+      "sourcePort": "port1",
+      "target": "node2",
+      "targetPort": "port3",
+      "label": "Edge from Node1 to Node2"
+    }
+  ]
+}
+```
+
+**Erklärung:**
+- `nodes` enthält eine Liste von Knoten mit `id`, `label`, Position und Ports.
+- Jeder `port` hat eine eigene `id` und eine Positions-Offset relativ zum Knoten.
+- `edges` definieren Verbindungen zwischen Knoten über Ports unter Angabe von Quell- und Zielport.
+
+---
+
 ## Detaillierter Entwicklungsplan (Tasks & Subtasks)
 
 ### 1. Projektinitialisierung
@@ -37,6 +74,7 @@ AVFlowView wird komplett neu entwickelt, um den Umgang mit großen und komplexen
 ### 2. Datenmodell & State Management
 
 - JSON-Schema analysieren und Typen in TypeScript definieren
+- JSON-Schema-Validator (z.B. `ajv`) implementieren
 - Globalen Zustand mit Zustand/Redux anlegen
 - State-Schnittstellen für Graphdaten und UI-Zustände implementieren
 
@@ -130,4 +168,3 @@ AVFlowView wird komplett neu entwickelt, um den Umgang mit großen und komplexen
 7. Performanceoptimierung: 1
 8. Testing & Qualitätssicherung: 1
 9. Dokumentation & Deployment: fortlaufend
-
