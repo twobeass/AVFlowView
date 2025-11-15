@@ -4,167 +4,116 @@
 
 ## Projektbeschreibung
 
-AVFlowView wird komplett neu entwickelt, um den Umgang mit großen und komplexen Graphen zu verbessern. Ziel ist es, eine skalierbare, performante und hochgradig interaktive Graphvisualisierung auf Open-Source-Basis zu schaffen. Der Fokus liegt auf:
-
-- Nativer Edge-Bundling-Logik für gute Edge-Separation
-- Präziser Port-basierter Verbindungslogik
-- Unterstützen sehr großer Graphen (Skalierbarkeit)
-- Optimiertem Node- und Edge-Placement
-- Vollständiger React-Integration
-- Kompatibilität zum bestehenden JSON-Schema
-
+AVFlowView wird komplett neu entwickelt, um sehr große und komplexe Graphen performant und skalierbar zu visualisieren. Ziel ist eine Open-Source-Lösung mit präziser Knoten- und Kantenplatzierung, Port-basierten Verbindungen und nativer Edge-Bundling-Logik auf Basis des bestehenden JSON-Schemas.
 
 ---
 
 ## Projektziele
 
-- Höchste Performance und Skalierbarkeit für Graphen mit Tausenden Knoten und Kanten
-- Klare und wartbare Codebasis in React mit TypeScript
-- Erweiterbarkeit und Modularität durch sauberes State-Management und Wrapper-Komponenten
-- Benutzerfreundliche UI mit Fokusmodi, Filterung, Zoom, Pan und Kontextmenüs
-- Automatisierte Tests zur Sicherung von Funktionalität und Performance
+- Skalierbarkeit für Graphen mit mehreren Tausend Knoten und Kanten
+- Präzise und valide Verarbeitung des bestehenden JSON-Schemas (src/schemas/av-wiring-graph.schema.json)
+- Vollständige Neuentwicklung mit React und TypeScript
+- Integration von Cytoscape.js als Graph-Engine mit Custom React-Wrapper
+- Benutzerfreundlichkeit durch Filter, Zoom, Drag & Drop, Fokus-Modi und Kontextmenüs
+- Performanceoptimierungen via Web Worker und Virtualisierung
+- Automatisierte Tests und CI/CD-Unterstützung
 
 ---
 
-## JSON-Schema Übersicht
+## JSON-Schema Details
 
-**Beispielhafte Struktur für Knoten, Kanten und Ports:**
+Das offizielle JSON-Schema befindet sich unter `src/schemas/av-wiring-graph.schema.json` und definiert folgende Hauptstrukturen:
 
-```json
-{
-  "nodes": [
-    {
-      "id": "node1",
-      "label": "Node 1",
-      "position": {"x": 100, "y": 200},
-      "ports": [
-        { "id": "port1", "offset": {"x": 10, "y": 20} },
-        { "id": "port2", "offset": {"x": -10, "y": 20} }
-      ]
-    }
-  ],
-  "edges": [
-    {
-      "id": "edge1",
-      "source": "node1",
-      "sourcePort": "port1",
-      "target": "node2",
-      "targetPort": "port3",
-      "label": "Edge from Node1 to Node2"
-    }
-  ]
-}
-```
+- **Nodes:** Knoten mit eindeutiger ID, Hersteller, Modell, Kategorie, Status, Ports (Ports sind als Objekt mit Port-IDs und Attributen definiert).
+- **Edges:** Kanten mit eindeutiger ID, Source- und Target-Knoten-IDs, optional Source- und Target-Port-Keys, Kategorie, Kabeltyp etc.
+- **Ports:** Ausrichtung, Typ, Geschlecht, Label und optionale Metadaten.
+- **Areas:** Container zur Gruppierung von Knoten (z.B. Räume, Zonen).
+- **Layout:** Steuerung von Layout-Richtung, Port-Bindungsart und Bereichs-Layouts.
 
-**Erklärung:**
-- `nodes` enthält eine Liste von Knoten mit `id`, `label`, Position und Ports.
-- Jeder `port` hat eine eigene `id` und eine Positions-Offset relativ zum Knoten.
-- `edges` definieren Verbindungen zwischen Knoten über Ports unter Angabe von Quell- und Zielport.
+Das Schema garantiert die Datenintegrität und dient als Grundlage für Typescript-Typdefinitionen und Validierungen.
 
 ---
 
-## Detaillierter Entwicklungsplan (Tasks & Subtasks)
+## Erweiterter Entwicklungsplan (Tasks & Subtasks)
 
-### 1. Projektinitialisierung
+### 1. Initialisierung
+- Setup von React/TypeScript-Projektstruktur
+- Git-Repo, Linter, Formatter, CI/CD Pipeline konfigurieren
+- Abhängigkeiten (Cytoscape, Zustand/Redux, Material UI o.ä.) installieren
 
-- Projektstruktur aufsetzen (React + TypeScript)
-- Git-Repository anlegen und CI/CD einrichten
-- Abhängigkeiten installieren (Cytoscape, Zustand/Redux, UI-Bibliothek)
+### 2. Datenmodell & Schema-Integration
+- JSON-Schema (`src/schemas/av-wiring-graph.schema.json`) importieren
+- Typescript-Typen generieren oder manuell definieren
+- Schema-Validator (z.B. `ajv`) einbinden
+- Import- und Exportfunktionen auf Schemabasis programmieren
 
-### 2. Datenmodell & State Management
+### 3. State Management
+- Globales State mit Zustand/Redux einrichten für Graphdaten/UI-Zustände
+- Aktion- und Reduzierlogik implementieren
 
-- JSON-Schema analysieren und Typen in TypeScript definieren
-- JSON-Schema-Validator (z.B. `ajv`) implementieren
-- Globalen Zustand mit Zustand/Redux anlegen
-- State-Schnittstellen für Graphdaten und UI-Zustände implementieren
+### 4. Cytoscape Integration
+- React-Komponente `<CytoscapeGraph>` entwickeln mit Lifecycle-Management
+- Props auf Cytoscape-Daten synchronisieren
+- Eventhandling für Klick, Drag, Zoom einbauen
 
-### 3. Cytoscape Integration
+### 5. Ports & Kanten
+- Modellierung von Ports als eigene Zwischenelemente oder Attribute
+- Positionsberechnung von Ports relativ zum Knoten
+- Custom Edge Renderer zum exakten Andocken an Ports
 
-- React Wrapper Komponente `<CytoscapeGraph>` entwickeln
-- Lifecycle und Synchronisation von Props mit Cytoscape-Instanz
-- Event-Handling (Klick, Drag, Zoom) integrieren
+### 6. Layout & Routing
+- Einbindung von Cytoscape-Layout-Algorithmen
+- Edge Bundling konfigurieren
+- Dynamische Neuberechnung bei Interaktionen
 
-### 4. Ports und Verbindungslogik
+### 7. UI-Entwicklung
+- Entwicklung von UI-Elementen (Filter, Zoom, Kontextmenüs, Fokus)
+- Responsives und performantes Interaktionsdesign
 
-- Ports als eigene Kinder-Knoten oder Knoten-Attribute implementieren
-- Positionsberechnung (Node Position + Port Offset)
-- Kanten exakt an Ports andocken mit Custom Edge Rendering
+### 8. Performance
+- Auslagerung von Layout-Operationen in Web Worker
+- Virtualisierung bei sehr großen Graphen prüfen
+- Optimierungszyklen mit Profiling
 
-### 5. Layout & Routing
+### 9. Testing
+- Unit Tests für State, Utils, Komponenten
+- Integrationstests für React-Cytoscape Wrapper
+- UI- und Performancetests
 
-- Cytoscape Layouts (Force-directed, hierarchisch) implementieren
-- Edge-Bundling Plugin integrieren und konfigurieren
-- Dynamisches Neulayout bei Interaktion unterstützen
-
-### 6. UI & Interaktion
-
-- UI-Bibliothek einbinden (Material UI o.ä.)
-- Zoom, Pan, Focus Mode, Filter, Kontextmenüs, Tooltipps implementieren
-
-### 7. Performanceoptimierung
-
-- Layout und Routing in Web Worker auslagern
-- Virtualisierung / Lazy Loading prüfen
-- Profiling und Optimierungen durchführen
-
-### 8. Testing
-
-- Unit Tests für Komponenten und State
-- Integrationstests für Cytoscape Wrapper und Events
-- UI/Performance Tests
-
-### 9. Dokumentation & Deployment
-
-- Entwickler- und Nutzerdokumentation erstellen
-- Produktions-Build und Deployment automatisieren
-
-### 10. Migration & Parallelbetrieb (optional)
-
-- Adapter/Wrapper für bestehende JSON-Daten
-- Parallelbetrieb alter und neuer Komponenten ermöglichen
-
----
-
-## Technische Umsetzung Port-Logik
-
-- Ports als separate Port-Knoten erstellen oder als Node-Attribute speichern
-- Port-Position relativ zum Node-Mittelpunkt als Offset definieren
-- Absolute Port-Position berechnen für präzise Kantenverbindung
-- Kantenquellen und -ziele auf entsprechende Ports mappen
-- Custom Edge Renderer zur exakten Verbindung auf Port-Positionen einsetzen
+### 10. Deployment & Dokumentation
+- Dokumentationspflege (Entwickler, Nutzer)
+- Automatisierte Produktions-Builds und Deployment
 
 ---
 
 ## Vergleich mit aktuellem Stack
-
-| Merkmal                 | Aktueller Stack (React Flow + ELK)       | Neuer Stack (React + Cytoscape.js)         |
-|-------------------------|------------------------------------------|--------------------------------------------|
-| Rendering               | SVG / WebGL                              | Canvas (leistungsfähig bei großen Graphen) |
-| Edge-Separation         | Eingeschränkt                           | Native Edge Bundling und Routing           |
-| Layout-Algorithmen      | ELK (hierarchisch, orthogonal)           | Umfangreiche integrierte Algorithmen        |
-| React-Integration       | Native Komponenten, gute React-Unterstützung | Wrapper notwendig, React-Kompatibilität       |
-| Skalierbarkeit          | Mittelgut bis mittelgroß                  | Sehr gut für sehr große Graphen             |
-| Anpassbarkeit           | Eingeschränkt                            | Sehr flexibel mit hohen Entwicklungsaufwand |
-
+| Kriterien | Aktueller Stack | Neuer Stack mit Cytoscape |
+|---|---|---|
+| Rendering | SVG/WebGL | Canvas für Performance
+| Edge Separation | Eingeschränkt | Native Edge Bundling
+| Layout | ELK | Umfangreiche Algorithmen
+| React Integration | Nativ | Wrapper erforderlich
+| Skalierbarkeit | Mittelgroß | Hoch
+| Anpassbarkeit | Limitiert | Sehr hoch |
 
 ---
 
-## Empfehlung & Fazit
-
-- Für nachhaltige Skalierbarkeit und bessere Edge-Separation ist eine Neuentwicklung mit Cytoscape.js empfohlen.
-- Paralleler Betrieb in Übergangsphase ist möglich, erhöht aber Code-Komplexität.
-- Schrittweise Migration ist sinnvoll, beginnend mit Grundfunktionen und Port-Logik.
+## Empfehlung
+Für die langfristige Skalierbarkeit, Performance und Flexibilität wird die Neuentwicklung mit Cytoscape.js unter Beibehaltung des bestehenden JSON-Schemas dringend empfohlen. Schrittweise Migration und paralleler Betrieb sind möglich, sollten aber sorgfältig geplant werden.
 
 ---
 
-## Zeitplan (Schätzung in Wochen)
+## Zeitplan (Wochen)
+1. Projektsetup: 1
+2. Schema & Datenmodell: 1
+3. State Management: 2
+4. Cytoscape Integration & Ports: 4
+5. Layout & Routing: 3
+6. UI & Interaktion: 3
+7. Performanceoptimierung: 2
+8. Testing & Deployment: 2
 
-1. Projektsetup & Grundstruktur: 1
-2. Datenmodell & State Management: 1
-3. Cytoscape Integration & React Wrapper: 2
-4. Ports & Kantenverbindung: 2
-5. Layout & Routing: 2
-6. UI & Interaktion: 2
-7. Performanceoptimierung: 1
-8. Testing & Qualitätssicherung: 1
-9. Dokumentation & Deployment: fortlaufend
+---
+
+Dieses Dokument wurde auf Basis der aktuellen Codebasis und des offiziellen Schemas im Repo erstellt und ergänzt.
+
