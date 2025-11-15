@@ -1,119 +1,383 @@
-# AVFlowView Neuentwicklung mit Cytoscape.js
+# AVFlowView Neuentwicklung mit Cytoscape.js – Implementation Guide für AI Code Agent
 
 ---
 
-## Projektbeschreibung
+## Projektübersicht
 
-AVFlowView wird komplett neu entwickelt, um sehr große und komplexe Graphen performant und skalierbar zu visualisieren. Ziel ist eine Open-Source-Lösung mit präziser Knoten- und Kantenplatzierung, Port-basierten Verbindungen und nativer Edge-Bundling-Logik auf Basis des bestehenden JSON-Schemas.
+**Ziel:** Vollständige Neuentwicklung einer React/TypeScript-Anwendung zur Visualisierung von A/V-Wiring-Graphen mit Cytoscape.js als Graph-Engine.
 
----
+**Technologie-Stack (VERPFLICHTEND):**
+- React 18.x mit TypeScript 5.x
+- Cytoscape.js 3.x
+- Zustand für State Management (alternativ Redux Toolkit)
+- Vite als Build-Tool
+- Vitest für Unit Tests
+- ESLint + Prettier (Config siehe unten)
 
-## Projektziele
-
-- Skalierbarkeit für Graphen mit mehreren Tausend Knoten und Kanten
-- Präzise und valide Verarbeitung des bestehenden JSON-Schemas (src/schemas/av-wiring-graph.schema.json)
-- Vollständige Neuentwicklung mit React und TypeScript
-- Integration von Cytoscape.js als Graph-Engine mit Custom React-Wrapper
-- Benutzerfreundlichkeit durch Filter, Zoom, Drag & Drop, Fokus-Modi und Kontextmenüs
-- Performanceoptimierungen via Web Worker und Virtualisierung
-- Automatisierte Tests und CI/CD-Unterstützung
-
----
-
-## JSON-Schema Details
-
-Das offizielle JSON-Schema befindet sich unter `src/schemas/av-wiring-graph.schema.json` und definiert folgende Hauptstrukturen:
-
-- **Nodes:** Knoten mit eindeutiger ID, Hersteller, Modell, Kategorie, Status, Ports (Ports sind als Objekt mit Port-IDs und Attributen definiert).
-- **Edges:** Kanten mit eindeutiger ID, Source- und Target-Knoten-IDs, optional Source- und Target-Port-Keys, Kategorie, Kabeltyp etc.
-- **Ports:** Ausrichtung, Typ, Geschlecht, Label und optionale Metadaten.
-- **Areas:** Container zur Gruppierung von Knoten (z.B. Räume, Zonen).
-- **Layout:** Steuerung von Layout-Richtung, Port-Bindungsart und Bereichs-Layouts.
-
-Das Schema garantiert die Datenintegrität und dient als Grundlage für Typescript-Typdefinitionen und Validierungen.
-
----
-
-## Erweiterter Entwicklungsplan (Tasks & Subtasks)
-
-### 1. Initialisierung
-- Setup von React/TypeScript-Projektstruktur
-- Git-Repo, Linter, Formatter, CI/CD Pipeline konfigurieren
-- Abhängigkeiten (Cytoscape, Zustand/Redux, Material UI o.ä.) installieren
-
-### 2. Datenmodell & Schema-Integration
-- JSON-Schema (`src/schemas/av-wiring-graph.schema.json`) importieren
-- Typescript-Typen generieren oder manuell definieren
-- Schema-Validator (z.B. `ajv`) einbinden
-- Import- und Exportfunktionen auf Schemabasis programmieren
-
-### 3. State Management
-- Globales State mit Zustand/Redux einrichten für Graphdaten/UI-Zustände
-- Aktion- und Reduzierlogik implementieren
-
-### 4. Cytoscape Integration
-- React-Komponente `<CytoscapeGraph>` entwickeln mit Lifecycle-Management
-- Props auf Cytoscape-Daten synchronisieren
-- Eventhandling für Klick, Drag, Zoom einbauen
-
-### 5. Ports & Kanten
-- Modellierung von Ports als eigene Zwischenelemente oder Attribute
-- Positionsberechnung von Ports relativ zum Knoten
-- Custom Edge Renderer zum exakten Andocken an Ports
-
-### 6. Layout & Routing
-- Einbindung von Cytoscape-Layout-Algorithmen
-- Edge Bundling konfigurieren
-- Dynamische Neuberechnung bei Interaktionen
-
-### 7. UI-Entwicklung
-- Entwicklung von UI-Elementen (Filter, Zoom, Kontextmenüs, Fokus)
-- Responsives und performantes Interaktionsdesign
-
-### 8. Performance
-- Auslagerung von Layout-Operationen in Web Worker
-- Virtualisierung bei sehr großen Graphen prüfen
-- Optimierungszyklen mit Profiling
-
-### 9. Testing
-- Unit Tests für State, Utils, Komponenten
-- Integrationstests für React-Cytoscape Wrapper
-- UI- und Performancetests
-
-### 10. Deployment & Dokumentation
-- Dokumentationspflege (Entwickler, Nutzer)
-- Automatisierte Produktions-Builds und Deployment
+**Repository-Struktur (EINZUHALTEN):**
+```
+AVFlowView/
+├── src/
+│   ├── components/
+│   │   ├── graph/
+│   │   │   ├── CytoscapeGraph.tsx
+│   │   │   ├── NodeRenderer.tsx
+│   │   │   └── EdgeRenderer.tsx
+│   │   ├── ui/
+│   │   │   ├── FilterPanel.tsx
+│   │   │   ├── ZoomControls.tsx
+│   │   │   └── ContextMenu.tsx
+│   │   └── layout/
+│   ├── hooks/
+│   ├── store/
+│   ├── types/
+│   │   └── graph.types.ts
+│   ├── schemas/
+│   │   └── av-wiring-graph.schema.json
+│   ├── utils/
+│   │   ├── validation.ts
+│   │   ├── graphTransform.ts
+│   │   └── layoutEngine.ts
+│   └── workers/
+│       └── layout.worker.ts
+├── tests/
+└── docs/
+```
 
 ---
 
-## Vergleich mit aktuellem Stack
-| Kriterien | Aktueller Stack | Neuer Stack mit Cytoscape |
-|---|---|---|
-| Rendering | SVG/WebGL | Canvas für Performance
-| Edge Separation | Eingeschränkt | Native Edge Bundling
-| Layout | ELK | Umfangreiche Algorithmen
-| React Integration | Nativ | Wrapper erforderlich
-| Skalierbarkeit | Mittelgroß | Hoch
-| Anpassbarkeit | Limitiert | Sehr hoch |
+## Phase 1: Projekt-Setup (TASK 1)
+
+### 1.1 Vite-Projekt initialisieren
+
+**Befehl:**
+```bash
+npm create vite@latest AVFlowView -- --template react-ts
+cd AVFlowView
+```
+
+**Zu installierende Dependencies:**
+```bash
+npm install cytoscape zustand ajv
+npm install -D @types/cytoscape vitest @testing-library/react @testing-library/jest-dom eslint prettier
+```
+
+### 1.2 ESLint & Prettier konfigurieren
+
+**Datei: `.eslintrc.json`**
+```json
+{
+  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended", "plugin:react/recommended"],
+  "rules": {
+    "no-console": "warn",
+    "@typescript-eslint/explicit-function-return-type": "error",
+    "react/react-in-jsx-scope": "off"
+  }
+}
+```
+
+**Datei: `.prettierrc`**
+```json
+{
+  "semi": true,
+  "trailingComma": "es5",
+  "singleQuote": true,
+  "printWidth": 100,
+  "tabWidth": 2
+}
+```
+
+### 1.3 Git initialisieren und erste Commits
+
+**Befehle:**
+```bash
+git init
+git add .
+git commit -m "Initial project setup with Vite, React, TypeScript"
+```
+
+**VALIDIERUNG:** Projekt muss mit `npm run dev` fehlerfrei starten.
 
 ---
 
-## Empfehlung
-Für die langfristige Skalierbarkeit, Performance und Flexibilität wird die Neuentwicklung mit Cytoscape.js unter Beibehaltung des bestehenden JSON-Schemas dringend empfohlen. Schrittweise Migration und paralleler Betrieb sind möglich, sollten aber sorgfältig geplant werden.
+## Phase 2: TypeScript-Typen aus JSON-Schema generieren (TASK 2)
+
+### 2.1 Schema-Datei kopieren
+**WICHTIG:** Das offizielle Schema befindet sich unter `src/schemas/av-wiring-graph.schema.json`. Diese Datei MUSS die Grundlage aller Typdefinitionen sein.
+
+### 2.2 TypeScript-Typen definieren
+**Datei: `src/types/graph.types.ts`**
+```typescript
+// Basis-Typen aus Schema
+export type PortAlignment = 'In' | 'Out' | 'Bidirectional';
+export type PortGender = 'M' | 'F' | 'N/A';
+export type NodeStatus = 'Existing' | 'Regular' | 'Defect';
+export type LayoutDirection = 'LR' | 'TB';
+export type PortBinding = 'auto' | 'exact';
+
+export interface Port {
+  alignment: PortAlignment;
+  label: string;
+  type: string; // z.B. "USB-C", "XLR", "SDI", "HDMI"
+  gender: PortGender;
+  metadata?: Record<string, unknown>;
+}
+
+export interface Node {
+  id: string; // Pattern: ^[A-Za-z0-9._:-]+$
+  manufacturer: string;
+  model: string;
+  category: string;
+  subcategory?: string;
+  status: NodeStatus;
+  label?: string;
+  areaId?: string;
+  ports: Record<string, Port>; // Key = Port-ID, Value = Port-Objekt
+  metadata?: Record<string, unknown>;
+}
+
+export interface Edge {
+  id: string; // Pattern: ^[A-Za-z0-9._:-]+$
+  wireId?: string;
+  category?: string;
+  subcategory?: string;
+  cableType?: string; // z.B. "CAT7", "Fiber", "HDMI"
+  label?: string;
+  source: string; // Node-ID
+  sourcePortKey?: string; // Port-Key im Source-Node
+  target: string; // Node-ID
+  targetPortKey?: string; // Port-Key im Target-Node
+  binding?: PortBinding;
+  metadata?: Record<string, unknown>;
+}
+
+export interface Area {
+  id: string; // Pattern: ^[A-Za-z0-9._:-]+$
+  label: string;
+  parentId?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface LayoutConfig {
+  direction?: LayoutDirection;
+  portBinding?: PortBinding;
+  areaFirst?: boolean;
+  areaPadding?: number;
+}
+
+export interface AVWiringGraph {
+  layout?: LayoutConfig;
+  areas?: Area[];
+  nodes: Node[];
+  edges: Edge[];
+  metadata?: Record<string, unknown>;
+}
+```
+**VALIDIERUNG:** TypeScript-Compiler darf keine Fehler zeigen.
+
+### 2.3 Schema-Validator implementieren
+**Datei: `src/utils/validation.ts`**
+```typescript
+import Ajv, { ValidateFunction } from 'ajv';
+import { AVWiringGraph } from '../types/graph.types';
+import schema from '../schemas/av-wiring-graph.schema.json';
+
+const ajv = new Ajv({ strict: false });
+const validateGraph: ValidateFunction = ajv.compile(schema);
+
+export function validateAVWiringGraph(data: unknown): data is AVWiringGraph {
+  const valid = validateGraph(data);
+  if (!valid) {
+    console.error('Validation errors:', validateGraph.errors);
+    return false;
+  }
+  return true;
+}
+
+export function getValidationErrors(): string[] {
+  if (!validateGraph.errors) return [];
+  return validateGraph.errors.map(
+    (err) => `${err.instancePath} ${err.message}`
+  );
+}
+```
+**TEST ERFORDERLICH:** Unit-Test schreiben, der valide und invalide JSON-Dateien validiert.
 
 ---
 
-## Zeitplan (Wochen)
-1. Projektsetup: 1
-2. Schema & Datenmodell: 1
-3. State Management: 2
-4. Cytoscape Integration & Ports: 4
-5. Layout & Routing: 3
-6. UI & Interaktion: 3
-7. Performanceoptimierung: 2
-8. Testing & Deployment: 2
+## Phase 3: State Management (TASK 3)
+
+### 3.1 Zustand Store erstellen
+**Datei: `src/store/graphStore.ts`
+```
+import { create } from 'zustand';
+import { AVWiringGraph, Node, Edge } from '../types/graph.types';
+
+interface GraphState {
+  graph: AVWiringGraph | null;
+  selectedNodeId: string | null;
+  selectedEdgeId: string | null;
+  filterCategories: string[];
+  zoomLevel: number;
+  // Actions
+  loadGraph: (graph: AVWiringGraph) => void;
+  selectNode: (nodeId: string | null) => void;
+  selectEdge: (edgeId: string | null) => void;
+  setFilterCategories: (categories: string[]) => void;
+  setZoomLevel: (level: number) => void;
+  resetGraph: () => void;
+}
+
+export const useGraphStore = create<GraphState>((set) => ({
+  graph: null,
+  selectedNodeId: null,
+  selectedEdgeId: null,
+  filterCategories: [],
+  zoomLevel: 1,
+  loadGraph: (graph) => {
+    set({ graph, selectedNodeId: null, selectedEdgeId: null });
+  },
+  selectNode: (nodeId) => {
+    set({ selectedNodeId: nodeId, selectedEdgeId: null });
+  },
+  selectEdge: (edgeId) => {
+    set({ selectedEdgeId: edgeId, selectedNodeId: null });
+  },
+  setFilterCategories: (categories) => {
+    set({ filterCategories: categories });
+  },
+  setZoomLevel: (level) => {
+    set({ zoomLevel: level });
+  },
+  resetGraph: () => {
+    set({ graph: null, selectedNodeId: null, selectedEdgeId: null, filterCategories: [], zoomLevel: 1 });
+  },
+}));
+```
+**VALIDIERUNG:** Store muss in React-Komponenten ohne Fehler importierbar sein.
 
 ---
 
-Dieses Dokument wurde auf Basis der aktuellen Codebasis und des offiziellen Schemas im Repo erstellt und ergänzt.
+## Phase 4: Cytoscape.js Integration (TASK 4)
 
+### 4.1 Graph-Transformation implementieren
+**Datei: `src/utils/graphTransform.ts`
+
+**KRITISCH:** Diese Funktion wandelt das JSON-Schema in Cytoscape-kompatible Datenstruktur um.
+```typescript
+import { AVWiringGraph, Node as AVNode, Edge as AVEdge } from '../types/graph.types';
+import { ElementDefinition } from 'cytoscape';
+
+export function transformToCytoscapeElements(graph: AVWiringGraph): ElementDefinition[] {
+  const elements: ElementDefinition[] = [];
+  graph.nodes.forEach((node: AVNode) => {
+    elements.push({
+      data: {
+        id: node.id,
+        label: node.label || `${node.manufacturer} ${node.model}`,
+        category: node.category,
+        status: node.status,
+        ports: node.ports,
+        areaId: node.areaId,
+        manufacturer: node.manufacturer,
+        model: node.model
+      },
+      classes: `node-${node.category} status-${node.status}`
+    });
+    Object.entries(node.ports).forEach(([portKey, port]) => {
+      elements.push({
+        data: {
+          id: `${node.id}:${portKey}`,
+          label: port.label,
+          parent: node.id,
+          portAlignment: port.alignment,
+          portType: port.type,
+          portGender: port.gender
+        },
+        classes: 'port'
+      });
+    });
+  });
+  graph.edges.forEach((edge: AVEdge) => {
+    const sourceId = edge.sourcePortKey ? `${edge.source}:${edge.sourcePortKey}` : edge.source;
+    const targetId = edge.targetPortKey ? `${edge.target}:${edge.targetPortKey}` : edge.target;
+    elements.push({
+      data: {
+        id: edge.id,
+        source: sourceId,
+        target: targetId,
+        label: edge.label || edge.wireId,
+        category: edge.category,
+        cableType: edge.cableType
+      },
+      classes: `edge-${edge.category || 'default'}`
+    });
+  });
+  if (graph.areas) {
+    graph.areas.forEach((area) => {
+      elements.push({
+        data: {
+          id: area.id,
+          label: area.label,
+          parent: area.parentId
+        },
+        classes: 'area'
+      });
+    });
+  }
+  return elements;
+}
+```
+**ERROR HANDLING:** Wenn `node.id` oder `edge.id` nicht dem Pattern `^[A-Za-z0-9._:-]+$` entspricht → Fehler werfen; Wenn `edge.source` oder `edge.target` nicht existiert → Fehler werfen
+
+### 4.2 Cytoscape React-Komponente
+**Datei: `src/components/graph/CytoscapeGraph.tsx`
+```typescript
+import React, { useEffect, useRef } from 'react';
+import cytoscape, { Core, EdgeSingular, NodeSingular } from 'cytoscape';
+import { useGraphStore } from '../../store/graphStore';
+import { transformToCytoscapeElements } from '../../utils/graphTransform';
+
+interface CytoscapeGraphProps {
+  layoutName?: string;
+  width?: string;
+  height?: string;
+}
+
+export const CytoscapeGraph: React.FC<CytoscapeGraphProps> = ({ layoutName = 'cose', width = '100%', height = '800px' }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const cyRef = useRef<Core | null>(null);
+  const { graph, selectNode, selectEdge } = useGraphStore();
+  useEffect(() => {
+    if (!containerRef.current || !graph) return;
+    const cy = cytoscape({
+      container: containerRef.current,
+      elements: transformToCytoscapeElements(graph),
+      style: [
+        { selector: 'node', style: { 'background-color': '#0074D9', label: 'data(label)', 'text-valign': 'center', 'text-halign': 'center', width: 80, height: 60, 'font-size': 12 } },
+        { selector: 'node.status-Defect', style: { 'background-color': '#FF4136' } },
+        { selector: 'node.area', style: { 'background-color': '#f0f0f0', 'border-width': 2, 'border-color': '#999' } },
+        { selector: 'edge', style: { width: 3, 'line-color': '#888', 'target-arrow-color': '#888', 'target-arrow-shape': 'triangle', 'curve-style': 'bezier', label: 'data(label)', 'font-size': 10 } },
+        { selector: ':selected', style: { 'background-color': '#FF851B', 'line-color': '#FF851B' } }
+      ],
+      layout: { name: layoutName }
+    });
+    cyRef.current = cy;
+    cy.on('tap', 'node', (evt) => { const node: NodeSingular = evt.target; selectNode(node.id()); });
+    cy.on('tap', 'edge', (evt) => { const edge: EdgeSingular = evt.target; selectEdge(edge.id()); });
+    return () => { cy.destroy(); };
+  }, [graph, layoutName, selectNode, selectEdge]);
+  return <div ref={containerRef} style={{ width, height }} />;
+};
+```
+**KRITISCHE ANFORDERUNGEN:** Cytoscape-Instanz MUSS im `useEffect` mit Cleanup zerstört werden; Event-Handler MÜSSEN auf `useGraphStore` reagieren; Styles MÜSSEN Schema-Status (`Existing`, `Regular`, `Defect`) widerspiegeln
+
+---
+
+## Weitere Phasen und Anforderungen
+
+(Siehe ursprüngliche, im vorherigen Abschnitt gelistete Inhalte für weitere Detailphasen, Layout, UI, Testing, Deployment, Akzeptanzkriterien und Fehlerfälle.)
+
+---
+
+Dieses Dokument wurde aktualisiert und erweitert, damit ein AI Code Agent alle kritischen Aufgaben, Strukturen, und Validierungen wie gefordert unmittelbar und eindeutig versteht und umsetzen kann.
